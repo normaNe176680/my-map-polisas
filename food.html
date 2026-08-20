@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polisas Food Details (360° View)</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+
+    <style>
+        :root {
+            --polisas-red: #e00202;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), 
+                        url('https://images.unsplash.com/photo-1592288333341-37d40a581297?auto=format&fit=crop&q=80&w=1920');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+            padding-bottom: 50px;
+        }
+
+        header {
+            background: rgba(224, 2, 2, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        #panorama-viewer {
+            width: 100%;
+            height: 480px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background: #000;
+        }
+
+        .map-btn {
+            display: inline-block;
+            background: #4285F4; 
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            margin: 20px 0;
+            transition: 0.3s;
+        }
+
+        .map-btn:hover {
+            background: #357ae8;
+            transform: translateY(-3px);
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2 id="displayTitle">Food Details</h2>
+</header>
+
+<div class="container" id="mainContent">
+    
+    <div id="panorama-viewer"></div>
+    
+    <h2 id="viewTitle"></h2>
+    <p id="viewDesc" style="font-size: 1.1rem; line-height: 1.6; color: #555;"></p>
+
+    <a id="googleMapsLink" href="#" target="_blank" class="map-btn">
+        <i class="fas fa-map-marker-alt"></i> Buka Google Maps
+    </a>
+
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+    <a href="javascript:history.back()" class="back-link"><i class="fas fa-arrow-left"></i> Kembali ke Sub-Kategori</a>
+</div>
+
+<script>
+    // Membaca parameter ?name= daripada URL (cth: food.html?name=Cafe Al biruni)
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedFood = urlParams.get("name");
+
+    // Pembolehubah global untuk Pannellum
+    let myViewer = null;
+
+    // Data Utama bagi lokasi makanan (Tanpa ruangan bilik)
+    const foodData = {
+        "Cafe Al biruni": {
+            image: "image/Cafe/Cafe_AB.jpg",
+            desc: "Kawasan Kafeteria Utama POLISAS yang menyediakan pelbagai hidangan makanan berat, minuman, dan makanan ringan untuk warga kampus.",
+            mapLink: "https://maps.app.goo.gl/vWGbia7zYLyszaDt7"
+        },
+        "PolyBUS": {
+            image: "https://pannellum..jpg",
+            desc: "Kafe santai POLISAS yang menawarkan makanan segera, snek pastry, kopi premium, dan perkhidmatan wi-fi.",
+            mapLink: "https://maps.app.goo.gl/y86xE6tYd1C5Xxhy8"
+        },
+        "Cafe Al ghazali": {
+            image: "https://pannellum.org/images/cere.jpg",
+            desc: "Kafe santai POLISAS yang menawarkan makanan segera, snek pastry, kopi premium, dan perkhidmatan wi-fi.",
+            mapLink: "https://www.google.com/maps"
+        }
+    };
+
+    // Semak dan paparkan data kafe utama
+    if (selectedFood && foodData[selectedFood]) {
+        const item = foodData[selectedFood];
+
+        document.getElementById("displayTitle").innerText = selectedFood;
+        document.getElementById("viewTitle").innerText = selectedFood;
+        document.getElementById("viewDesc").innerText = item.desc;
+        document.getElementById("googleMapsLink").href = item.mapLink;
+
+        // Muatkan viewer 360 panorama terus bagi kafe berkenaan
+        myViewer = pannellum.viewer('panorama-viewer', {
+            "type": "equirectangular",
+            "panorama": item.image,
+            "autoLoad": true,
+            "hfov": 100
+        });
+
+    } else {
+        document.getElementById("mainContent").innerHTML = `
+            <h2>Data Tidak Ditemui</h2>
+            <p>Sila pilih lokasi dari menu sub-kategori.</p>
+            <a href="category.html?main=food" class="map-btn">Kembali Ke Sub-Kategori</a>
+        `;
+    }
+</script>
+</body>
+</html>

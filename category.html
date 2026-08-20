@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polisas Sub Category</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --polisas-red: #e00202;
+            --glass-white: rgba(255, 255, 255, 0.1);
+            --card-white: rgba(255, 255, 255, 0.95);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('https://images.unsplash.com/photo-1592288333341-37d40a581297?auto=format&fit=crop&q=80&w=1920');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+        }
+
+        header {
+            background: rgba(224, 2, 2, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        header h2 {
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 600;
+            font-size: 1.8rem;
+        }
+
+        /* --- Sub-Categories Options Grid --- */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto 20px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        /* Glassmorphism Card Style */
+        .card {
+            background: var(--card-white);
+            color: #333;
+            padding: 40px 25px;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            opacity: 0; 
+            animation: fadeInCard 0.6s ease-out forwards;
+        }
+
+        .card:hover {
+            transform: translateY(-12px);
+            background: #ffffff;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            border-bottom: 6px solid var(--polisas-red);
+        }
+
+        .card h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            line-height: 1.4;
+        }
+
+        /* Back Button Style */
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+            transition: 0.3s;
+        }
+
+        .back-btn:hover {
+            color: #ff9900;
+        }
+
+        @keyframes fadeInCard {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-msg {
+            grid-column: 1 / -1;
+            text-align: center;
+            font-size: 1.2rem;
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="explore.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+    <h2 id="title">Category</h2>
+</header>
+
+<div class="container" id="subOptions"></div>
+
+<script>
+    // 1. Ambil parameter nama kategori daripada URL (Contoh: ?main=buildings)
+    const urlParams = new URLSearchParams(window.location.search);
+    const mainCategory = urlParams.get("main") || "buildings";
+
+    // 2. Kemas kini tajuk utama di bahagian header
+    document.getElementById("title").innerText = mainCategory.toUpperCase();
+
+    // 3. Pangkalan data nama-nama sub-kategori berdasarkan pilihan utama
+    const data = {
+        buildings: ["Blok Pentadbiran", "Blok Jabatan Kejuruteraan Awam (PJ)", "Blok Jabatan Kejuruteraan Elektrik (Block A)","Blok Jabatan Kejuruteraan Elektrik (Block B)", "Blok Jabatan Kejuruteraan Elektrik (Block C)","Blok Jabatan Kejuruteraan Mekanikal (PH)","Blok Jabatan Perdagangan (JP)", "Blok JP 2", "Blok U8","Blok U9", "Blok ME", "Blok Mahkota Square","Dataran JP (Blok U6)","Blok U12","Blok U13 (JKM)"],
+        hall : ["Dewan Sri Mahkota", "Dewan Seminar Mahkota", "Dewan Seri Makmur", "Auditorium Mahkota","Auditorium Makmur(JKE)"],
+        hostel: ["Kamsis Al-Biruni", "Kamsis Al-Ghazali", "Kamsis Ibnu Sina"],
+        food: ["PolyBUS", "Cafe Al biruni", "Cafe Al ghazali"],
+        facilities: ["Unit Pembangunan Dan Senggaraan (Ups) Polisas,Stor Am", "Perpustakaan" ,"Dewan Gymnasium","Masjid POLISAS","Surau Putih","Unit Hal Ehwal Pelajar (HEP)","Unit Peperiksaan","Mini Klinik Polisas","Gelanggang Futsal","Padang pétanque","Padang woodball","Padang Bola","Gelanggang Bola Tampar / Bola Jaring","Jabatan Sukan"," Kokurikulum Dan Kebudayaan Polisas (JSKK)","Koperasi POLISAS (koPolisas)","Pondok Pengawal","Unit Kenderaan Bas Polisas"],
+        parking: ["Parking C (kereta)", "Parking D (motorsikal)", "Parking C (motorsikal)"]
+    }
+
+    const container = document.getElementById("subOptions");
+
+    // 4. Semak sama ada data kategori wujud, jika ya, jana kad interaktif
+    if (data[mainCategory]) {
+        data[mainCategory].forEach((item, index) => {
+            const div = document.createElement("div");
+            div.className = "card";
+            div.style.animationDelay = (index * 0.08) + "s";
+            div.innerHTML = `<h3>${item}</h3>`;
+            
+            // Mengarahkan pengguna ke fail HTML mengikut pengelasan kategori
+            div.onclick = function() {
+                if (mainCategory === "hostel") {
+                    // Jika pengguna memilih kategori hostel, buka fail hostel.html khusus
+                    window.location.href = `hostel.html?name=${encodeURIComponent(item)}`;
+                } else {
+                    // Jika kategori lain, teruskan buka mengikut template fail asal (contoh: buildings.html?name=...)
+                    window.location.href = `${mainCategory}.html?name=${encodeURIComponent(item)}`;
+                }
+            };
+            
+            container.appendChild(div);
+        });
+    } else {
+        container.innerHTML = "<div class='error-msg'>Category not found. Please go back to the main page.</div>";
+    }
+</script>
+
+</body>
+</html>

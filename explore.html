@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terokai lokasi POLISAS</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Driver.js CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f4f6f9;
+}
+
+/* Header with Flexbox for aligned menu button, logo, and title */
+header {
+    background: #ff0000;
+    color: white;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+/* Container to group the hamburger menu and logo on the left */
+.header-left {
+    position: absolute;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Hamburger Menu Button Styling */
+.menu-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1002;
+    padding: 0;
+}
+
+/* POLISAS Logo Styling */
+.header-logo {
+    height: 40px; /* Adjust height to fit nicely inside header */
+    width: auto;
+    object-fit: contain;
+}
+
+header h2 {
+    margin: 0;
+    font-size: 22px;
+}
+
+/* Glass Transparent Sliding Sidebar Styling */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px; /* Hidden off-screen by default */
+    width: 250px;
+    height: 100%;
+    
+    /* Glassmorphism Styling */
+    background: rgba(0, 51, 102, 0.65); /* Semi-transparent dark blue tone */
+    backdrop-filter: blur(12px); /* Frosted blur effect */
+    -webkit-backdrop-filter: blur(12px); /* Safari support */
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+    
+    transition: left 0.3s ease-in-out;
+    z-index: 2000;
+    padding-top: 60px;
+}
+
+.sidebar.active {
+    left: 0; /* Slides into view from left */
+}
+
+/* Sidebar Navigation Items */
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar ul li {
+    padding: 15px 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.sidebar ul li a {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: 0.2s;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar ul li a:hover {
+    color: #ff4d4d;
+}
+
+/* Overlay Backdrop */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    display: none;
+    z-index: 1999;
+}
+
+.overlay.active {
+    display: block;
+}
+
+.container {
+    padding: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Search Bar Styling */
+.search-wrapper {
+    position: relative;
+    max-width: 500px;
+    margin: -25px auto 30px auto;
+    z-index: 1001;
+}
+
+.search-box {
+    width: 100%;
+    padding: 15px 20px 15px 50px;
+    font-size: 16px;
+    border: none;
+    border-radius: 30px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    box-sizing: border-box;
+    outline: none;
+    transition: 0.3s;
+}
+
+.search-box:focus {
+    box-shadow: 0 5px 25px rgba(255, 0, 0, 0.25);
+}
+
+.search-wrapper i.fa-search {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    font-size: 18px;
+}
+
+.search-results-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 15px;
+    margin-top: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
+}
+
+.result-item {
+    padding: 12px 20px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: 0.2s;
+}
+
+.result-item:last-child {
+    border-bottom: none;
+}
+
+.result-item:hover {
+    background: #e6f0ff;
+}
+
+.result-name {
+    font-weight: 600;
+    color: #333;
+}
+
+.result-type {
+    font-size: 12px;
+    background: #003366;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+}
+
+/* Card Grid Layout */
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: white;
+    padding: 30px;
+    text-align: center;
+    border-radius: 15px;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    background: #e6f0ff;
+}
+
+.card i {
+    font-size: 40px;
+    margin-bottom: 15px;
+    color: #003366;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="header-left">
+        <button class="menu-btn" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+        <!-- POLISAS Logo image inserted right next to the menu icon -->
+        <img src="image/Logo_polisas.png" alt="POLISAS Logo" class="header-logo">
+    </div>
+    <h2>Terokai Lokasi POLISAS</h2>
+</header>
+
+<!-- Sidebar Navigation -->
+<div id="sidebar" class="sidebar">
+    <ul>
+        <li><a href="group.html"><i class="fa fa-users"></i> Kumpulan Kami</a></li>
+        <li><a href="about.html"><i class="fa fa-info-circle"></i> About My Polisas Map</a></li>
+        <li><a href="contact.html"><i class="fa fa-phone"></i> Pertolongan dan Maklum Balas</a></li>
+    </ul>
+</div>
+
+<!-- Dark Backdrop Overlay -->
+<div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+
+<div class="container">
+    <div class="search-wrapper">
+        <i class="fa fa-search"></i>
+        <input type="text" id="searchInput" class="search-box" placeholder="Cari bilik, blok, kamsis atau tempat..." oninput="liveSearch()">
+        <div id="searchResults" class="search-results-dropdown"></div>
+    </div>
+
+    <div class="card-container">
+        <div class="card" onclick="goToCategory('hall')">
+            <i class="fa fa-university"></i>
+            <h3>Hall</h3>
+        </div>
+        <div class="card" onclick="goToCategory('buildings')">
+            <i class="fa fa-building"></i>
+            <h3>Buildings</h3>
+        </div>
+        <div class="card" onclick="goToCategory('hostel')">
+            <i class="fa fa-bed"></i>
+            <h3>Hostel</h3>
+        </div>
+        <div class="card" onclick="goToCategory('facilities')">
+            <i class="fa fa-cogs"></i>
+            <h3>Facilities</h3>
+        </div>
+        <div class="card" onclick="goToCategory('food')">
+            <i class="fa fa-utensils"></i>
+            <h3>Food & Cafe</h3>
+        </div>
+        <div class="card" onclick="goToCategory('parking')">
+            <i class="fa fa-parking"></i>
+            <h3>Parking</h3>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("active");
+    document.getElementById("overlay").classList.toggle("active");
+}
+
+const searchableData = [
+    { name: "Kamsis Al-Biruni", type: "hostel", target: "hostel.html?name=Kamsis%20Al-Biruni" },
+    { name: "Kamsis Al-Ghazali", type: "hostel", target: "hostel.html?name=Kamsis%20Al-Ghazali" },
+    { name: "Kamsis Ibnu Sina", type: "hostel", target: "hostel.html?name=Kamsis%20Ibnu%20Sina" },
+    { name: "Blok Pentadbiran", type: "building", target: "buildings.html?name=Blok%20Pentadbiran" },
+    { name: "Blok Jabatan Kejuruteraan Awam (PJ)", type: "building", target: "buildings.html?name=Blok%20Jabatan%20Kejuruteraan%20Awam%20(PJ)" },
+    { name: "Blok Jabatan Kejuruteraan Elektrik (JKE)", type: "building", target: "category.html?main=buildings" },
+    { name: "Blok Jabatan Kejuruteraan Mekanikal (PH)", type: "building", target: "buildings.html?name=Blok%20Jabatan%20Kejuruteraan%20Mekanikal%20(PH)" },
+    { name: "Blok U8", type: "building", target: "buildings.html?name=Blok%20U8" },
+    { name: "Blok U9", type: "building", target: "buildings.html?name=Blok%20U9" },
+    { name: "Blok Mahkota Square", type: "building", target: "category.html?main=buildings" },
+    { name: "Pejabat Pengarah", type: "room", target: "buildings.html?name=Blok%20Pentadbiran" },
+    { name: "Hal Ehwal Pelajar (HEP)", type: "room", target: "buildings.html?name=Blok%20Pentadbiran" },
+    { name: "Civil Square", type: "room", target: "buildings.html?name=Blok%20Jabatan%20Kejuruteraan%20Awam%20(PJ)" },
+    { name: "Inkubator Percetakan", type: "room", target: "buildings.html?name=Blok%20Jabatan%20Kejuruteraan%20Awam%20(PJ)" },
+    { name: "PJ 108", type: "room", target: "buildings.html?name=Blok%20Jabatan%20Kejuruteraan%20Awam%20(PJ)" },
+    { name: "PJ303", type: "room", target: "buildings.html?name=Blok%20Jabatan%20Kejuruteraan%20Awam%20(PJ)" },
+    { name: "PH 101", type: "room", target: "buildings.html?name=Blok%20Jabatan%20Kejuruteraan%20Mekanikal%20(PH)" },
+    { name: "PH 104 (Bilik Seminar)", type: "room", target: "buildings.html?name=Blok%20Jabatan%20Kejuruteraan%20Mekanikal%20(PH)" },
+    { name: "Bilik Komputer U8-002", type: "room", target: "buildings.html?name=Blok%20U8" },
+    { name: "Makmal CAD U9-08", type: "room", target: "buildings.html?name=Blok%20U9" },
+    { name: "Bilik Kuliah U9-206", type: "room", target: "buildings.html?name=Blok%20U9" },
+    { name: "Perpustakaan", type: "facility", target: "category.html?main=facilities" },
+    { name: "Dewan Sri Mahkota", type: "facility", target: "category.html?main=facilities" },
+    { name: "Masjid POLISAS", type: "facility", target: "category.html?main=facilities" },
+    { name: "Mini Klinik Polisas", type: "facility", target: "category.html?main=facilities" },
+    { name: "Koperasi POLISAS", type: "facility", target: "category.html?main=facilities" },
+    { name: "Cafeteria", type: "food", target: "category.html?main=food" },
+    { name: "Cafe POLISAS", type: "food", target: "category.html?main=food" },
+    { name: "Parkir C (kereta)", type: "parking", target: "parking.html?name=Parkir%20C%20(kereta)" },
+    { name: "Parkir D (motorsikal)", type: "parking", target: "parking.html?name=Parkir%20D%20(motorsikal)" },
+    { name: "Parkir C (motorsikal)", type: "parking", target: "parking.html?name=Parkir%20C%20(motorsikal)" }
+];
+
+function goToCategory(category) {
+    window.location.href = "category.html?main=" + category;
+}
+
+function liveSearch() {
+    const query = document.getElementById("searchInput").value.toLowerCase().trim();
+    const resultsContainer = document.getElementById("searchResults");
+    
+    resultsContainer.innerHTML = "";
+    
+    if (query === "") {
+        resultsContainer.style.display = "none";
+        return;
+    }
+    
+    const matchedItems = searchableData.filter(item => item.name.toLowerCase().includes(query));
+    
+    if (matchedItems.length > 0) {
+        matchedItems.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "result-item";
+            div.onclick = function() {
+                window.location.href = item.target;
+            };
+            
+            div.innerHTML = `
+                <span class="result-name">${item.name}</span>
+                <span class="result-type">${item.type}</span>
+            `;
+            resultsContainer.appendChild(div);
+        });
+        resultsContainer.style.display = "block";
+    } else {
+        const noResult = document.createElement("div");
+        noResult.className = "result-item";
+        noResult.style.color = "#999";
+        noResult.style.cursor = "default";
+        noResult.innerText = "Tiada padanan ditemui";
+        resultsContainer.appendChild(noResult);
+        resultsContainer.style.display = "block";
+    }
+}
+
+document.addEventListener("click", function(e) {
+    if (!e.target.closest(".search-wrapper")) {
+        document.getElementById("searchResults").style.display = "none";
+    }
+});
+</script>
+
+<!-- Driver.js Library & Custom Tour Script -->
+<script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+<script src="guide.js"></script>
+
+</body>
+</html>

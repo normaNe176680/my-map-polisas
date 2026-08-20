@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polisas Building Details (360° View)</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+
+    <style>
+        :root {
+            --polisas-red: #e00202;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), 
+                        url('https://images.unsplash.com/photo-1592288333341-37d40a581297?auto=format&fit=crop&q=80&w=1920');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+            padding-bottom: 50px;
+        }
+
+        header {
+            background: rgba(224, 2, 2, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        #panorama-viewer {
+            width: 100%;
+            height: 480px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background: #000;
+        }
+
+        .room-section {
+            margin: 25px 0;
+            text-align: left;
+        }
+
+        .room-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .room-btn {
+            background: #f0f2f5;
+            border: 2px solid transparent;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .room-btn:hover {
+            background: #ffe6e6;
+            border-color: var(--polisas-red);
+        }
+
+        .room-btn.active {
+            background: var(--polisas-red);
+            color: white;
+        }
+
+        .map-btn {
+            display: inline-block;
+            background: #4285F4; 
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            margin: 20px 0;
+            transition: 0.3s;
+        }
+
+        .map-btn:hover {
+            background: #357ae8;
+            transform: translateY(-3px);
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2 id="displayTitle">Building Details</h2>
+</header>
+
+<div class="container" id="mainContent">
+    
+    <div id="panorama-viewer"></div>
+    
+    <h2 id="viewTitle"></h2>
+    <p id="viewDesc" style="font-size: 1.1rem; line-height: 1.6; color: #555;"></p>
+
+    <div class="room-section" id="roomSection">
+        <h4 style="margin-bottom: 5px; color: var(--polisas-red);">Sila Pilih Bilik / Lokasi Pinpoint:</h4>
+        <div class="room-grid" id="roomGrid"></div>
+    </div>
+
+    <a id="googleMapsLink" href="#" target="_blank" class="map-btn">
+        <i class="fas fa-map-marker-alt"></i> Buka Google Maps
+    </a>
+
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+    <a href="javascript:history.back()" class="back-link"><i class="fas fa-arrow-left"></i> Kembali ke Sub-Kategori</a>
+</div>
+
+<script>
+    // Membaca parameter ?name= daripada URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedBuilding = urlParams.get("name");
+
+    // Mengisytiharkan pembolehubah global untuk Pannellum
+    let myViewer = null;
+
+    // Pangkalan Data Lokasi & Hotspot Pinpoint yang telah diperbaiki
+    const buildingData = {
+        "Blok Pentadbiran": {
+            image: "https://pannellum.org/images/alma.jpg",
+            desc: "Blok Pentadbiran utama yang menempatkan pejabat pengarah dan pengurusan korporat.",
+            mapLink: "https://www.google.com/maps",
+            hotspots: [
+                { pitch: -5, yaw: -35, text: "Pergi ke Pejabat Pengarah", targetRoom: "Pejabat Pengarah" },
+                { pitch: 2, yaw: 45, text: "Pergi ke Hal Ehwal Pelajar (HEP)", targetRoom: "Hal Ehwal Pelajar" }
+            ],
+            rooms: {
+                "Pejabat Pengarah": { 
+                    img: "https://pannellum.org/images/jure-sphere.jpg", 
+                    desc: "Pejabat rasmi Pengarah Politeknik Sultan Haji Ahmad Shah.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Kembali ke Ruang Legar Utama", targetRoom: "MAIN_VIEW" }]
+                },
+                "Hal Ehwal Pelajar": { 
+                    img: "https://pannellum.org/images/ceres.jpg", 
+                    desc: "Kaunter pengurusan kebajikan, pendaftaran, dan disiplin pelajar.",
+                    hotspots: [{ pitch: -10, yaw: 90, text: "Kembali ke Ruang Legar Utama", targetRoom: "MAIN_VIEW" }]
+                }
+            }
+        },
+        "Blok Jabatan Kejuruteraan Awam (PJ)": {
+            image: "image/JKA/jka.jpg",
+            desc: "Blok Jabatan Kejuruteraan Awam (JKA) menempatkan makmal, bilik kuliah (Tingkat G-4), studio reka bentuk, bilik pensyarah, pejabat pentadbiran, dan fasiliti pelajar.",
+            mapLink: "https://www.google.com/maps",
+            // Semua Hotspot Akses dari Laluan Utama & Tangga Aras
+            hotspots: [
+                { pitch: -10, yaw: 15, text: "Masuk ke Civil Square", targetRoom: "Civil Square" },
+                { pitch: -5, yaw: -60, text: "Masuk ke Inkubator Percetakan", targetRoom: "Inkubator Percetakan" },
+                { pitch: 5, yaw: 120, text: "Ke Bilik Kuliah PJ 108", targetRoom: "PJ 108" },
+                { pitch: -8, yaw: -140, text: "Ke Pejabat Pentadbiran", targetRoom: "Pejabat" },
+                { pitch: -12, yaw: -20, text: "Ke Kawasan Surau Lelaki", targetRoom: "Surau Lelaki" },
+                { pitch: 0, yaw: 80, text: "Ke Bilik Kualiti", targetRoom: "Bilik Kualiti" },
+                { pitch: 5, yaw: -40, text: "Ke Bilik Mesyuarat", targetRoom: "Bilik Mesyuarat" },
+                { pitch: -15, yaw: 40, text: "Ke Bus Stop JKA", targetRoom: "Bus Stop JKA" },
+                { pitch: -2, yaw: 95, text: "Ke Tandas OKU / VIP", targetRoom: "Tandas OKU VIP" },
+                { pitch: -8, yaw: -5, text: "Ke Tandas Staff (Lelaki/Perempuan/Bilik Paip)", targetRoom: "Tandas Staff" },
+                // Hotspot ke Bilik-Bilik Kuliah/Studio Aras Atas (Tingkat 3 & 4)
+                { pitch: 10, yaw: 60, text: "Naik ke Tingkat 3 (PJ 301 - PJ 307 / Studio)", targetRoom: "Tingkat 3 Koridor" },
+                { pitch: 15, yaw: 65, text: "Naik ke Tingkat 4 (PJ 401 - PJ 407 / Bilik Pensyarah)", targetRoom: "Tingkat 4 Koridor" }
+            ],
+            rooms: {
+                /* ================= ARAS BAWAH / LANDSKAP ================= */
+                "Civil Square": { 
+                    img: "image/JKA/civil_square.jpg", 
+                    desc: "Studio reka bentuk senibina dan kejuruteraan awam (Berhampiran Bus Stop JKA).",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor JKA", targetRoom: "MAIN_VIEW" }]
+                },
+                "Inkubator Percetakan": { 
+                    img: "image/JKA/civil_square.jpg", 
+                    desc: "Ruang inkubator percetakan berteknologi tinggi Jabatan Kejuruteraan Awam.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor JKA", targetRoom: "MAIN_VIEW" }]
+                },
+                "PJ 108": { 
+                    img: "https://pannellum.org/images/alma.jpg", 
+                    desc: "Bilik kuliah teori, pembelajaran, dan perbincangan kumpulan (Bersebelahan Bilik Mesyuarat).",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor JKA", targetRoom: "MAIN_VIEW" }]
+                },
+                "Bilik Kualiti": { 
+                    img: "https://pannellum.org/images/jure-sphere.jpg", 
+                    desc: "Bilik Pengurusan Kualiti JKA (Dilarang masuk tanpa kebenaran). Berdekatan Surau Perempuan dan Tandas OKU/VIP.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor JKA", targetRoom: "MAIN_VIEW" }]
+                },
+                "Surau Lelaki": { 
+                    img: "https://pannellum.org/images/ceres.jpg", 
+                    desc: "Fasiliti Surau Lelaki JKA. Berhampiran Tandas OKU serta kawasan Landskap & Aquaponik.",
+                    hotspots: [{ pitch: 0, yaw: 90, text: "Keluar ke Laluan Utama", targetRoom: "MAIN_VIEW" }]
+                },
+                "Surau Perempuan": { 
+                    img: "https://pannellum.org/images/ceres.jpg", 
+                    desc: "Fasiliti Surau Perempuan JKA, terletak bersebelahan dengan Bilik Kualiti.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor JKA", targetRoom: "MAIN_VIEW" }]
+                },
+                "Pejabat": { 
+                    img: "https://pannellum.org/images/alma.jpg", 
+                    desc: "Pejabat Pentadbiran Jabatan Kejuruteraan Awam, bersambung dengan Bilik Mesyuarat dan berhampiran PJ 108.",
+                    hotspots: [{ pitch: 0, yaw: -90, text: "Keluar ke Koridor Utama", targetRoom: "MAIN_VIEW" }]
+                },
+                "Bilik Mesyuarat": { 
+                    img: "https://pannellum.org/images/alma.jpg", 
+                    desc: "Bilik Mesyuarat Jabatan Kejuruteraan Awam, terletak bersebelahan dengan Pejabat dan PJ 108.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor Utama", targetRoom: "MAIN_VIEW" }]
+                },
+                "Landskap & Aquaponik": { 
+                    img: "https://pannellum.org/images/alma.jpg", 
+                    desc: "Kawasan luar untuk projek Landskap dan sistem Aquaponik JKA, berdekatan Surau Lelaki.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Kembali ke Bangunan JKA", targetRoom: "MAIN_VIEW" }]
+                },
+                "Bus Stop JKA": { 
+                    img: "https://pannellum.org/images/jure-sphere.jpg", 
+                    desc: "Kawasan perhentian bas (Bus Stop) JKA, terletak berhampiran dengan Civil Square.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Masuk ke Bangunan JKA", targetRoom: "MAIN_VIEW" }]
+                },
+                "Tandas OKU VIP": { 
+                    img: "https://pannellum.org/images/ceres.jpg", 
+                    desc: "Fasiliti Tandas bagi golongan OKU dan VIP, terletak bersebelahan dengan Surau Perempuan.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor Utama", targetRoom: "MAIN_VIEW" }]
+                },
+                "Tandas Staff": { 
+                    img: "https://pannellum.org/images/alma.jpg", 
+                    desc: "Kawasan Tandas Kakitangan JKA yang merangkumi Tandas Staff Lelaki, Tandas Staff Perempuan, dan Bilik Paip.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor Utama", targetRoom: "MAIN_VIEW" }]
+                },
+
+                /* ================= TINGKAT 3 (SERIES PJ 300) ================= */
+                "Tingkat 3 Koridor": {
+                    img: "https://pannellum.org/images/alma.jpg",
+                    desc: "Koridor utama Tingkat 3 JKA yang menghubungkan studio senibina, bilik kuliah, dan fasiliti pelajar.",
+                    hotspots: [
+                        { pitch: 0, yaw: -150, text: "Ke PJ301 (Studio Seni Bina)", targetRoom: "PJ 301" },
+                        { pitch: 0, yaw: -100, text: "Ke PJ 302", targetRoom: "PJ 302" },
+                        { pitch: 0, yaw: -50, text: "Ke PJ 303", targetRoom: "PJ 303" },
+                        { pitch: 0, yaw: 0, text: "Ke PJ 304", targetRoom: "PJ 304" },
+                        { pitch: 0, yaw: 50, text: "Ke PJ 306", targetRoom: "PJ 306" },
+                        { pitch: 0, yaw: 100, text: "Ke PJ 307", targetRoom: "PJ 307" },
+                        { pitch: -5, yaw: 140, text: "Ke Tandas Pelajar Perempuan (T3)", targetRoom: "Tandas Perempuan T3" },
+                        { pitch: -5, yaw: 160, text: "Ke Tandas Pelajar Lelaki (T3)", targetRoom: "Tandas Lelaki T3" },
+                        { pitch: -10, yaw: 180, text: "Turun ke Aras Bawah", targetRoom: "MAIN_VIEW" }
+                    ]
+                },
+                "PJ 301": { 
+                    img: "https://pannellum.org/images/jure-sphere.jpg", 
+                    desc: "PJ301 - Studio Seni Bina JKA untuk sesi amali, lukisan teknikal, dan reka bentuk.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T3", targetRoom: "Tingkat 3 Koridor" }]
+                },
+                "PJ 302": { 
+                    img: "https://pannellum.org/images/ceres.jpg", 
+                    desc: "PJ 302 - Bilik Kuliah / Ruang Pembelajaran Pelajar JKA di Tingkat 3.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T3", targetRoom: "Tingkat 3 Koridor" }]
+                },
+                "PJ 303": { 
+                    img: "https://pannellum.org/images/alma.jpg", 
+                    desc: "PJ 303 - Bilik Kuliah Teori dan Tutorial Jabatan Kejuruteraan Awam.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T3", targetRoom: "Tingkat 3 Koridor" }]
+                },
+                "PJ 304": { 
+                    img: "https://pannellum.org/images/jure-sphere.jpg", 
+                    desc: "PJ 304 - Ruang kelas kuliah teori akademik.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T3", targetRoom: "Tingkat 3 Koridor" }]
+                },
+                "PJ 306": { 
+                    img: "https://pannellum.org/images/ceres.jpg", 
+                    desc: "PJ 306 - Bilik Kuliah dan perbincangan akademik pelajar JKA.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T3", targetRoom: "Tingkat 3 Koridor" }]
+                },
+                "PJ 307": { 
+                    img: "https://pannellum.org/images/alma.jpg", 
+                    desc: "PJ 307 - Bilik Kuliah / Pembelajaran Teori di aras hujung Tingkat 3.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T3", targetRoom: "Tingkat 3 Koridor" }]
+                },
+                "Tandas Perempuan T3": { 
+                    img: "https://pannellum.org/images/ceres.jpg", 
+                    desc: "Fasiliti Tandas Pelajar Perempuan JKA yang terletak di Tingkat 3 bangunan.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T3", targetRoom: "Tingkat 3 Koridor" }]
+                },
+                "Tandas Lelaki T3": { 
+                    img: "https://pannellum.org/images/alma.jpg", 
+                    desc: "Fasiliti Tandas Pelajar Lelaki JKA yang terletak di Tingkat 3 bangunan.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T3", targetRoom: "Tingkat 3 Koridor" }]
+                },
+
+                /* ================= TINGKAT 4 (SERIES PJ 400 - INCLUDE PJ 405) ================= */
+                "Tingkat 4 Koridor": {
+                    img: "https://pannellum.org/images/jure-sphere.jpg",
+                    desc: "Koridor utama Tingkat 4 JKA yang menempatkan deretan bilik kuliah siri PJ 400 serta Bilik-Bilik Pensyarah JKA.",
+                    hotspots: [
+                        { pitch: 0, yaw: -140, text: "Ke PJ 401", targetRoom: "PJ 401" },
+                        { pitch: 0, yaw: -100, text: "Ke PJ 403", targetRoom: "PJ 403" },
+                        { pitch: 0, yaw: -60, text: "Ke PJ 404", targetRoom: "PJ 404" },
+                        { pitch: 0, yaw: -20, text: "Ke PJ 405 (Bilik Kuliah JKA)", targetRoom: "PJ 405" },
+                        { pitch: 0, yaw: 20, text: "Ke PJ 406", targetRoom: "PJ 406" },
+                        { pitch: 0, yaw: 60, text: "Ke PJ 407", targetRoom: "PJ 407" },
+                        { pitch: 0, yaw: 100, text: "Ke Bilik Pensyarah JKA 1", targetRoom: "Bilik Pensyarah 1" },
+                        { pitch: 0, yaw: 130, text: "Ke Bilik Pensyarah JKA 2", targetRoom: "Bilik Pensyarah 2" },
+                        { pitch: -5, yaw: 150, text: "Ke Tandas Pelajar Lelaki (T4)", targetRoom: "Tandas Lelaki T4" },
+                        { pitch: -5, yaw: 165, text: "Ke Tandas Pelajar Perempuan (T4)", targetRoom: "Tandas Perempuan T4" },
+                        { pitch: -10, yaw: 180, text: "Turun ke Aras Bawah", targetRoom: "MAIN_VIEW" }
+                    ]
+                },
+                "PJ 401": { 
+                    img: "https://pannellum.org/images/alma.jpg", 
+                    desc: "PJ 401 - Bilik Kuliah / Ruang kelas teori akademik JKA Tingkat 4.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T4", targetRoom: "Tingkat 4 Koridor" }]
+                },
+                "PJ 403": { 
+                    img: "https://pannellum.org/images/ceres.jpg", 
+                    desc: "PJ 403 - Bilik Kuliah di Tingkat 4 Blok PJ.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T4", targetRoom: "Tingkat 4 Koridor" }]
+                },
+                "PJ 404": { 
+                    img: "https://pannellum.org/images/jure-sphere.jpg", 
+                    desc: "PJ 404 - Bilik kelas kuliah teori kejuruteraan awam.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T4", targetRoom: "Tingkat 4 Koridor" }]
+                },
+                "PJ 405": { 
+                    img: "https://pannellum.org/images/alma.jpg", 
+                    desc: "PJ 405 - Bilik Kuliah teori JKA yang terletak di Tingkat 4. (Sila pastikan tiada makanan/minuman dibawa masuk).",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T4", targetRoom: "Tingkat 4 Koridor" }]
+                },
+                "PJ 406": { 
+                    img: "https://pannellum.org/images/ceres.jpg", 
+                    desc: "PJ 406 - Bilik Kuliah akademik di Tingkat 4.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T4", targetRoom: "Tingkat 4 Koridor" }]
+                },
+                "PJ 407": { 
+                    img: "https://pannellum.org/images/jure-sphere.jpg", 
+                    desc: "PJ 407 - Bilik Kuliah / Kelas akademik pelajar JKA di hujung aras Tingkat 4.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T4", targetRoom: "Tingkat 4 Koridor" }]
+                },
+                "Bilik Pensyarah 1": { 
+                    img: "https://pannellum.org/images/alma.jpg", 
+                    desc: "Bilik Pensyarah JKA 1 - Ruang pejabat dan meja kerja para pensyarah Jabatan Kejuruteraan Awam.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T4", targetRoom: "Tingkat 4 Koridor" }]
+                },
+                "Bilik Pensyarah 2": { 
+                    img: "https://pannellum.org/images/ceres.jpg", 
+                    desc: "Bilik Pensyarah JKA 2 - Ruang rundingan akademik dan konsultasi pelajar bersama pensyarah JKA.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T4", targetRoom: "Tingkat 4 Koridor" }]
+                },
+                "Tandas Lelaki T4": { 
+                    img: "https://pannellum.org/images/alma.jpg", 
+                    desc: "Fasiliti Tandas Pelajar Lelaki JKA yang terletak di Tingkat 4.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T4", targetRoom: "Tingkat 4 Koridor" }]
+                },
+                "Tandas Perempuan T4": { 
+                    img: "https://pannellum.org/images/ceres.jpg", 
+                    desc: "Fasiliti Tandas Pelajar Perempuan JKA yang terletak di Tingkat 4.",
+                    hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T4", targetRoom: "Tingkat 4 Koridor" }]
+                }
+            }
+        },
+        "Blok U8": {
+            image: "image/u8_main_view.jpg", // Sila gantikan dengan URL imej 360 utama Blok U8 anda
+            desc: "Bangunan Blok U8 menempatkan bilik komputer, makmal fotogrametri, bilik taklimat, tandas, serta beberapa studio reka bentuk dan pejabat dari Aras Bawah sehingga Tingkat 3.",
+            mapLink: "https://maps.google.com/?q=POLISAS", 
+            hotspots: [
+                { pitch: -5, yaw: -20, text: "Ke Bilik Taklimat U8-001", targetRoom: "Bilik Taklimat U8-001" },
+                { pitch: -5, yaw: 20, text: "Ke Bilik Komputer U8-002", targetRoom: "Bilik Komputer U8-002" },
+                { pitch: -2, yaw: 50, text: "Ke Makmal Fotogrametri U8-003", targetRoom: "Makmal Fotogrametri U8-003" },
+                { pitch: 10, yaw: 0, text: "Naik ke Tingkat 1 (Studio U8-101 - U8-104)", targetRoom: "Koridor Tingkat 1" }
+            ],
+            rooms: {
+                /* ================= ARAS BAWAH (GROUND FLOOR) ================= */
+                "Bilik Elektrik Aras Bawah": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik utiliti elektrik bagi keselamatan bekalan kuasa Blok U8.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Pandangan Utama", targetRoom: "MAIN_VIEW" }]
+                },
+                "Bilik Taklimat U8-001": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Taklimat Utama U8-001 yang terletak di Aras Bawah.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor", targetRoom: "MAIN_VIEW" }]
+                },
+                "Bilik Komputer U8-002": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Komputer U8-002 untuk kegunaan pengajaran dan amali pelajar.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor", targetRoom: "MAIN_VIEW" }]
+                },
+                "Makmal Fotogrametri U8-003": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal Fotogrametri U8-003 khusus untuk kerja amali ukur dan pemetaan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor", targetRoom: "MAIN_VIEW" }]
+                },
+                "Tandas Perempuan Aras Bawah": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Fasiliti Tandas Perempuan yang terletak di Aras Bawah.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor", targetRoom: "MAIN_VIEW" }]
+                },
+
+                /* ================= TINGKAT 1 (FIRST FLOOR) ================= */
+                "Studio U8-101": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Studio reka bentuk reka bentuk / kuliah U8-101 (Tingkat 1). Makanan & minuman tidak dibenarkan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 1", targetRoom: "MAIN_VIEW" }]
+                },
+                "Studio U8-102": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Studio reka bentuk / kuliah U8-102 (Tingkat 1). Makanan & minuman tidak dibenarkan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 1", targetRoom: "MAIN_VIEW" }]
+                },
+                "Studio U8-103": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Studio reka bentuk / kuliah U8-103 (Tingkat 1).",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 1", targetRoom: "MAIN_VIEW" }]
+                },
+                "Studio U8-104": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Studio reka bentuk / kuliah U8-104 (Tingkat 1).",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 1", targetRoom: "MAIN_VIEW" }]
+                },
+                "Tandas Lelaki Tingkat 1": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Fasiliti Tandas Lelaki yang terletak di Tingkat 1.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 1", targetRoom: "MAIN_VIEW" }]
+                },
+
+                /* ================= TINGKAT 2 (SECOND FLOOR) ================= */
+                "Studio U8-201": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Studio reka bentuk / pembelajaran U8-201 (Tingkat 2). Makanan & minuman tidak dibenarkan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 2", targetRoom: "MAIN_VIEW" }]
+                },
+                "Studio U8-202": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Studio reka bentuk / pembelajaran U8-202 (Tingkat 2).",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 2", targetRoom: "MAIN_VIEW" }]
+                },
+                "Studio U8-203": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Studio reka bentuk / pembelajaran U8-203 (Tingkat 2).",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 2", targetRoom: "MAIN_VIEW" }]
+                },
+                "Studio U8-204": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Studio reka bentuk / pembelajaran U8-204 (Tingkat 2).",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 2", targetRoom: "MAIN_VIEW" }]
+                },
+                "Tandas Lelaki Tingkat 2": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Fasiliti Tandas Lelaki yang terletak di Tingkat 2.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 2", targetRoom: "MAIN_VIEW" }]
+                },
+
+                /* ================= TINGKAT 3 (THIRD FLOOR) ================= */
+                "Pejabat U8-303 / U9-301": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Pejabat pengurusan berkongsi di antara ruang U8-303 dan U9-301.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 3", targetRoom: "MAIN_VIEW" }]
+                },
+                "Pejabat U8-302 / Makmal CAD 4": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Ruang Pejabat Pentadbiran U8-302 bersambung dengan Makmal Lukisan Berbantu Komputer (CAD 4).",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 3", targetRoom: "MAIN_VIEW" }]
+                }
+            }
+        },
+        "Blok U9": {
+            image: "image/u9_main_view.jpg", // Sila gantikan dengan URL imej 360 utama Blok U9 anda
+            desc: "Bangunan Blok U9 menempatkan pelbagai Makmal CAD (Computer-Aided Design) dan Bilik Kuliah Teori yang tersebar dari Aras Bawah sehingga Tingkat 3.",
+            mapLink: "http://googleusercontent.com/maps.google.com/3", // Sila gantikan dengan pautan Google Maps sebenar jika ada
+            hotspots: [
+                { pitch: -10, yaw: -30, text: "Masuk ke Makmal CAD U9-08", targetRoom: "Makmal CAD U9-08" },
+                { pitch: -5, yaw: 10, text: "Masuk ke Makmal CAD U9-09", targetRoom: "Makmal CAD U9-09" },
+                { pitch: 10, yaw: 0, text: "Naik ke Tingkat 1 (Makmal CAD U9-106 & U9-107)", targetRoom: "Tingkat 1 Koridor" }
+            ],
+            rooms: {
+                /* ================= ARAS BAWAH (GROUND FLOOR) ================= */
+                "Bilik AHU": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Air Handling Unit (AHU) bagi sistem pengudaraan Blok U9 Aras Bawah.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Pandangan Utama", targetRoom: "MAIN_VIEW" }]
+                },
+                "Makmal CAD U9-08": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal Lukisan Berbantu Komputer (CAD U9-08) di Aras Bawah. Makanan & minuman tidak dibenarkan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Aras Bawah", targetRoom: "MAIN_VIEW" }]
+                },
+                "Makmal CAD U9-09": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal Lukisan Berbantu Komputer (CAD U9-09) di Aras Bawah. Makanan & minuman tidak dibenarkan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Aras Bawah", targetRoom: "MAIN_VIEW" }]
+                },
+
+                /* ================= TINGKAT 1 (FIRST FLOOR) ================= */
+                "Tingkat 1 Koridor": {
+                    img: "image/placeholder_360.jpg",
+                    desc: "Koridor utama Tingkat 1 Blok U9 yang menghubungkan Makmal CAD.",
+                    hotspots: [
+                        { pitch: -5, yaw: -45, text: "Masuk ke Makmal CAD U9-106", targetRoom: "Makmal CAD U9-106" },
+                        { pitch: -5, yaw: 45, text: "Masuk ke Makmal CAD U9-107", targetRoom: "Makmal CAD U9-107" },
+                        { pitch: 10, yaw: 0, text: "Naik ke Tingkat 2", targetRoom: "Tingkat 2 Koridor" },
+                        { pitch: -10, yaw: 180, text: "Turun ke Aras Bawah", targetRoom: "MAIN_VIEW" }
+                    ]
+                },
+                "Bilik AHU 2": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Air Handling Unit 2 (AHU 2) di Tingkat 1.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 1", targetRoom: "Tingkat 1 Koridor" }]
+                },
+                "Makmal CAD U9-106": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal Lukisan Berbantu Komputer (CAD U9-106) di Tingkat 1. Sila pastikan kebersihan makmal dijaga.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 1", targetRoom: "Tingkat 1 Koridor" }]
+                },
+                "Makmal CAD U9-107": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal Lukisan Berbantu Komputer (CAD U9-107) di Tingkat 1. Makanan & minuman dilarang bawa masuk.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 1", targetRoom: "Tingkat 1 Koridor" }]
+                },
+
+                /* ================= TINGKAT 2 (SECOND FLOOR) ================= */
+                "Tingkat 2 Koridor": {
+                    img: "image/placeholder_360.jpg",
+                    desc: "Koridor utama Tingkat 2 Blok U9 yang menempatkan bilik kuliah teori.",
+                    hotspots: [
+                        { pitch: -5, yaw: -45, text: "Masuk ke Bilik Kuliah U9-206", targetRoom: "Bilik Kuliah U9-206" },
+                        { pitch: -5, yaw: 45, text: "Masuk ke Bilik Kuliah U9-207", targetRoom: "Bilik Kuliah U9-207" },
+                        { pitch: 10, yaw: 0, text: "Naik ke Tingkat 3", targetRoom: "Tingkat 3 Koridor" },
+                        { pitch: -10, yaw: 180, text: "Turun ke Tingkat 1", targetRoom: "Tingkat 1 Koridor" }
+                    ]
+                },
+                "Bilik Kuliah U9-206": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Kuliah Teori U9-206 di Tingkat 2. Sila susun kerusi selepas tamat kuliah.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 2", targetRoom: "Tingkat 2 Koridor" }]
+                },
+                "Bilik Kuliah U9-207": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Kuliah Teori U9-207 di Tingkat 2.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 2", targetRoom: "Tingkat 2 Koridor" }]
+                },
+
+                /* ================= TINGKAT 3 (THIRD FLOOR) ================= */
+                "Tingkat 3 Koridor": {
+                    img: "image/placeholder_360.jpg",
+                    desc: "Koridor utama aras paling atas (Tingkat 3) Blok U9.",
+                    hotspots: [
+                        { pitch: -5, yaw: -45, text: "Masuk ke Bilik Kuliah 303", targetRoom: "Bilik Kuliah 303" },
+                        { pitch: -5, yaw: 45, text: "Masuk ke Bilik Kuliah 304", targetRoom: "Bilik Kuliah 304" },
+                        { pitch: -10, yaw: 180, text: "Turun ke Tingkat 2", targetRoom: "Tingkat 2 Koridor" }
+                    ]
+                },
+                "Bilik Kuliah 303": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Kuliah Teori 303 yang terletak di aras paling atas Tingkat 3.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 3", targetRoom: "Tingkat 3 Koridor" }]
+                },
+                "Bilik Kuliah 304": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Kuliah Teori 304 yang terletak di aras paling atas Tingkat 3.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Tingkat 3", targetRoom: "Tingkat 3 Koridor" }]
+                }
+            }
+        },
+        "Dataran JP (Blok U6)": {
+            image: "image/u6_main_view.jpg", 
+            desc: "Bangunan Blok U6 (Dataran Jabatan Perdagangan) menempatkan bilik-bilik kuliah siri S, makmal komputer, makmal stenografik, serta pejabat penasihat.",
+            mapLink: "http://googleusercontent.com/maps.google.com/u6",
+            hotspots: [
+                { pitch: -5, yaw: -30, text: "Masuk ke Bilik Seminar S1(u6-1-1)", targetRoom: "Bilik Seminar S1(u6-1-1)" },
+                { pitch: -5, yaw: 30, text: "Ke Pejabat Penasihat 1", targetRoom: "Pejabat Penasihat 1" },
+                { pitch: 10, yaw: 0, text: "Naik ke Tingkat 2 (Makmal Komputer)", targetRoom: "Tingkat 2 Koridor" }
+            ],
+            rooms: {
+                // Aras Bawah & Tingkat 1
+                "Bilik Seminar S1(u6-1-1)": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Seminar S1 (Kod: u6-1-1). Sila pastikan makanan dan minuman tidak dibawa masuk.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Laluan Utama", targetRoom: "MAIN_VIEW" }]
+                },
+                "Bilik Seminar S2(u6-1-2)": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Seminar S2 (Kod: u6-1-2) untuk sesi kuliah dan taklimat jabatan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Laluan Utama", targetRoom: "MAIN_VIEW" }]
+                },
+                "Bilik Mesyuarat JP": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Mesyuarat utama bagi Jabatan Perdagangan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Laluan Utama", targetRoom: "MAIN_VIEW" }]
+                },
+                "Pejabat Penasihat 1": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Ruang Pejabat Penasihat 1 Jabatan Perdagangan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Laluan Utama", targetRoom: "MAIN_VIEW" }]
+                },
+                "Pejabat Penasihat 2": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Ruang Pejabat Penasihat 2 Jabatan Perdagangan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Laluan Utama", targetRoom: "MAIN_VIEW" }]
+                },
+                "Mock Office": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Mock Office - Ruang simulasi pejabat praktikal untuk pelajar Jabatan Perdagangan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Laluan Utama", targetRoom: "MAIN_VIEW" }]
+                },
+                "Bilik AHU 6": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik utiliti pengudaraan AHU 6.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "MAIN_VIEW" }]
+                },
+                // Tingkat 2
+                "Tingkat 2 Koridor": {
+                    img: "image/placeholder_360.jpg",
+                    desc: "Koridor Tingkat 2 Blok U6 yang menghubungkan kawasan makmal.",
+                    hotspots: [
+                        { pitch: 0, yaw: -45, text: "Masuk ke Makmal Komputer 1u6-2", targetRoom: "Makmal Komputer 1u6-2" },
+                        { pitch: 0, yaw: 45, text: "Masuk ke Makmal Stenografik 2", targetRoom: "Makmal Stenografik 2" },
+                        { pitch: 10, yaw: 0, text: "Naik ke Tingkat 3", targetRoom: "Tingkat 3 Koridor" },
+                        { pitch: -10, yaw: 180, text: "Turun ke Aras Bawah", targetRoom: "MAIN_VIEW" }
+                    ]
+                },
+                "Makmal Komputer 1u6-2": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal Komputer 1 (u6-2). Dilarang membawa masuk makanan dan minuman.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor T2", targetRoom: "Tingkat 2 Koridor" }]
+                },
+                "Makmal Stenografik 2": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal Stenografik 2 untuk latihan trengkas dan kemahiran menaip.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor T2", targetRoom: "Tingkat 2 Koridor" }]
+                },
+                "Bilik Latihan S2(u6-2)": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Latihan S2 di Tingkat 2.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor T2", targetRoom: "Tingkat 2 Koridor" }]
+                },
+                "Makmal Perakaunan u61-10": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal Perakaunan khas (u61-10) Jabatan Perdagangan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor T2", targetRoom: "Tingkat 2 Koridor" }]
+                },
+                "Tandas Staff Perempuan T2": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Kemudahan Tandas Kakitangan Perempuan di Tingkat 2.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "Tingkat 2 Koridor" }]
+                },
+                // Tingkat 3
+                "Tingkat 3 Koridor": {
+                    img: "image/placeholder_360.jpg",
+                    desc: "Koridor Tingkat 3 menempatkan deretan Bilik Kuliah Teori siri S11 hingga S14.",
+                    hotspots: [
+                        { pitch: 0, yaw: -130, text: "Ke Bilik Kuliah S11(u6-3-1)", targetRoom: "Bilik Kuliah S11(u6-3-1)" },
+                        { pitch: 0, yaw: -70, text: "Ke Bilik Kuliah S12(u6-3-2)", targetRoom: "Bilik Kuliah S12(u6-3-2)" },
+                        { pitch: 0, yaw: 0, text: "Ke Bilik Kuliah S13(u6-3-3)", targetRoom: "Bilik Kuliah S13(u6-3-3)" },
+                        { pitch: 0, yaw: 70, text: "Ke Bilik Kuliah S14(u6-3-4)", targetRoom: "Bilik Kuliah S14(u6-3-4)" },
+                        { pitch: -10, yaw: 180, text: "Turun ke Tingkat 2", targetRoom: "Tingkat 2 Koridor" }
+                    ]
+                },
+                "Bilik Kuliah S11(u6-3-1)": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Kuliah S11 di Tingkat 3 (Kod ruang: u6-3-1).",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor T3", targetRoom: "Tingkat 3 Koridor" }]
+                },
+                "Bilik Kuliah S12(u6-3-2)": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Kuliah S12 di Tingkat 3 (Kod ruang: u6-3-2).",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor T3", targetRoom: "Tingkat 3 Koridor" }]
+                },
+                "Bilik Kuliah S13(u6-3-3)": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Kuliah S13 di Tingkat 3 (Kod ruang: u6-3-3).",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor T3", targetRoom: "Tingkat 3 Koridor" }]
+                },
+                "Bilik Kuliah S14(u6-3-4)": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Kuliah S14 di Tingkat 3 (Kod ruang: u6-3-4).",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor T3", targetRoom: "Tingkat 3 Koridor" }]
+                },
+                "Bilik Utiliti u6-3-5": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Ruang Bilik Utiliti u6-3-5 aras atas.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "Tingkat 3 Koridor" }]
+                },
+                "Bilik AHU 5": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Air Handling Unit (AHU 5) di Tingkat 3.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "Tingkat 3 Koridor" }]
+                }
+            }
+        },
+
+        /* ==================== 2. KELAS JTM (BLOK U13 - JTM) ==================== */
+        "Blok Jabatan Teknologi Makanan (Blok U13)": {
+            image: "image/jtm_main_view.jpg",
+            desc: "Fasiliti Jabatan Teknologi Makanan (JTM) di Blok U13 yang menempatkan makmal amali makanan, makmal analisis, bilik kuliah, serta bilik pensyarah.",
+            mapLink: "http://googleusercontent.com/maps.google.com/jtm",
+            hotspots: [
+                { pitch: -10, yaw: -40, text: "Ke Makmal Persediaan Makanan U13-0-1", targetRoom: "Makmal Persediaan Makanan U13-0-1" },
+                { pitch: -5, yaw: 10, text: "Ke Makmal Analisis U13-0-7", targetRoom: "Makmal Analisis U13-0-7" },
+                { pitch: 5, yaw: 60, text: "Ke Kawasan Bilik Kuliah & Pensyarah", targetRoom: "Laluan Akademik JTM" }
+            ],
+            rooms: {
+                "Makmal Persediaan Makanan U13-0-1": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal Persediaan Makanan U13-0-1 untuk latihan amali masakan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor", targetRoom: "MAIN_VIEW" }]
+                },
+                "Makmal Sensori": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal Sensori untuk sesi penilaian kualiti rasa dan bau produk makanan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor", targetRoom: "MAIN_VIEW" }]
+                },
+                "Makmal Pemprosesan": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal Pemprosesan Makanan berskala industri.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor", targetRoom: "MAIN_VIEW" }]
+                },
+                "Makmal Analisis U13-0-7": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal Analisis Kimia & Nutrisi Makanan U13-0-7.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor", targetRoom: "MAIN_VIEW" }]
+                },
+                "Bilik AHU JTM": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik utiliti sistem AHU bangunan JTM.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "MAIN_VIEW" }]
+                },
+                "Tandas Perempuan / OKU JTM": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Kemudahan tandas bagi pelajar perempuan dan mesra OKU.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "MAIN_VIEW" }]
+                },
+                "Tandas Lelaki JTM": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Kemudahan tandas pelajar lelaki JTM.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "MAIN_VIEW" }]
+                },
+                // Blok Kakitangan / Kuliah
+                "Laluan Akademik JTM": {
+                    img: "image/placeholder_360.jpg",
+                    desc: "Kawasan laluan utama ke Bilik Pensyarah dan Bilik Kuliah.",
+                    hotspots: [
+                        { pitch: 0, yaw: -90, text: "Masuk ke Bilik Pensyarah JTM", targetRoom: "Bilik Pensyarah JTM" },
+                        { pitch: 0, yaw: -30, text: "Ke Bilik Kuliah 2A", targetRoom: "Bilik Kuliah 2A" },
+                        { pitch: 0, yaw: 30, text: "Ke Bilik Kuliah 2B", targetRoom: "Bilik Kuliah 2B" },
+                        { pitch: 0, yaw: 90, text: "Ke Makmal Fizikal / Makmal Sains", targetRoom: "Makmal Fizikal / Makmal Sains" },
+                        { pitch: 0, yaw: 180, text: "Kembali ke Koridor Makmal Amali", targetRoom: "MAIN_VIEW" }
+                    ]
+                },
+                "Bilik Pensyarah JTM": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Ruang kerja dan kaunter rundingan akademik Pensyarah Jabatan Teknologi Makanan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Laluan Akademik", targetRoom: "Laluan Akademik JTM" }]
+                },
+                "Bilik Kuliah 2A": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Kuliah BK2A untuk pembelajaran kelas teori.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Laluan Akademik", targetRoom: "Laluan Akademik JTM" }]
+                },
+                "Bilik Kuliah 2B": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Kuliah BK2B untuk pembelajaran kelas teori.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Laluan Akademik", targetRoom: "Laluan Akademik JTM" }]
+                },
+                "Makmal Fizikal / Makmal Sains": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal Fizikal / Makmal Sains Kejuruteraan JTM.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Laluan Akademik", targetRoom: "Laluan Akademik JTM" }]
+                },
+                "Surau Perempuan JTM": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Fasiliti Surau Pelajar Perempuan JTM.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "Laluan Akademik JTM" }]
+                },
+                "Surau Staff Perempuan": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Kemudahan Surau untuk Kakitangan / Staf Perempuan JTM.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "Laluan Akademik JTM" }]
+                },
+                "Surau Lelaki JTM": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Fasiliti Surau Pelajar Lelaki JTM.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "Laluan Akademik JTM" }]
+                },
+                "Surau Lelaki Staff": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Kemudahan Surau untuk Staf / Kakitangan Lelaki.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "Laluan Akademik JTM" }]
+                },
+                "Tandas Staff Lelaki JTM": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Kemudahan Tandas Staf Lelaki.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "Laluan Akademik JTM" }]
+                },
+                "Tandas Staff Perempuan JTM": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Kemudahan Tandas Staf Perempuan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "Laluan Akademik JTM" }]
+                }
+            }
+        },
+
+        /* ==================== 3. BLOK U12 (JKM) ==================== */
+        "Blok U12": {
+            image: "image/u12_main_view.jpg",
+            desc: "Bangunan Blok U12 Jabatan Kejuruteraan Mekanikal (JKM). Menempatkan Pejabat Utama JKM 1, Makmal Metalurgi, Makmal Komputer, dan Surau.",
+            mapLink: "http://googleusercontent.com/maps.google.com/u12",
+            hotspots: [
+                { pitch: -5, yaw: -30, text: "Ke Mechanic of Material Lab", targetRoom: "Mechanic of Material Lab" },
+                { pitch: -5, yaw: 15, text: "Ke Makmal Metalurgi", targetRoom: "Makmal Metalurgi" },
+                { pitch: 10, yaw: 45, text: "Naik ke Pejabat Utama / Makmal Komputer", targetRoom: "Tingkat Atas Koridor" }
+            ],
+            rooms: {
+                // Aras Bawah
+                "Mechanic of Material Lab": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal Mekanik Bahan (Mechanic of Material Lab) JKM.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor", targetRoom: "MAIN_VIEW" }]
+                },
+                "Makmal Metalurgi": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal Metalurgi JKM bagi kajian struktur mikro logam.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor", targetRoom: "MAIN_VIEW" }]
+                },
+                "Bilik Elektrik U12": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Elektrik utama untuk struktur Blok U12.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "MAIN_VIEW" }]
+                },
+                "Surau Perempuan U12": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Kemudahan Surau Pelajar Perempuan di Aras Bawah Blok U12.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "MAIN_VIEW" }]
+                },
+                "Tandas Lelaki Pelajar": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Fasiliti Tandas Pelajar Lelaki.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "MAIN_VIEW" }]
+                },
+                // Tingkat Atas
+                "Tingkat Atas Koridor": {
+                    img: "image/placeholder_360.jpg",
+                    desc: "Laluan tingkat atas Blok U12 yang menyambungkan Pejabat JKM 1 dan Makmal AutoCAD.",
+                    hotspots: [
+                        { pitch: 0, yaw: -90, text: "Masuk ke Pejabat JKM 1 (U12-12)", targetRoom: "Pejabat JKM 1 (U12-12)" },
+                        { pitch: 0, yaw: 0, text: "Ke Makmal Komputer U12-34", targetRoom: "Makmal Komputer U12-34" },
+                        { pitch: 0, yaw: 45, text: "Ke Makmal AutoCAD (Cad Lab) / Makmal Komputer U12-35", targetRoom: "Makmal AutoCAD(Cad Lab) Makmal komputer U12-35" },
+                        { pitch: -10, yaw: 180, text: "Turun ke Aras Bawah", targetRoom: "MAIN_VIEW" }
+                    ]
+                },
+                "Pejabat JKM 1 (U12-12)": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Pejabat Pentadbiran Utama JKM 1 (Bilik U12-12).",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor", targetRoom: "Tingkat Atas Koridor" }]
+                },
+                "Makmal Komputer U12-34": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal Komputer JKM U12-34 untuk pengajaran perisian teknikal.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor", targetRoom: "Tingkat Atas Koridor" }]
+                },
+                "Makmal AutoCAD(Cad Lab) Makmal komputer U12-35": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Makmal AutoCAD (CAD Lab) merangkap Makmal Komputer U12-35. Dilarang membawa masuk makanan.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor", targetRoom: "Tingkat Atas Koridor" }]
+                },
+                "Bilik AHU3": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik Air Handling Unit 3 (AHU3) tingkat atas.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "Tingkat Atas Koridor" }]
+                },
+                "Surau Staf Perempuan": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Surau dikhaskan untuk kegunaan Staf Sahaja (Perempuan).",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "Tingkat Atas Koridor" }]
+                },
+                "Tandas Perempuan T2": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Kemudahan tandas perempuan tingkat atas.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "Tingkat Atas Koridor" }]
+                },
+                "Tandas Staff Perempuan T2": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Kemudahan tandas staf perempuan tingkat atas.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "Tingkat Atas Koridor" }]
+                },
+                "Tandas Staff Lelaki T2": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Kemudahan tandas staf lelaki tingkat atas.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "Tingkat Atas Koridor" }]
+                }
+            }
+        },
+
+        /* ==================== 4. BLOK U13 (JKM) ==================== */
+        "Blok U13 (JKM)": {
+            image: "image/u13_jkm_main.jpg",
+            desc: "Bangunan Blok U13 bahagian Jabatan Kejuruteraan Mekanikal (JKM). Menempatkan CAD/CAM Machining Center dan Pejabat JKM.",
+            mapLink: "http://googleusercontent.com/maps.google.com/u13_jkm",
+            hotspots: [
+                { pitch: -5, yaw: -30, text: "Ke Cad/Cam Machining Center 1", targetRoom: "Cad/Cam Machining Center 1" },
+                { pitch: -5, yaw: 10, text: "Ke Cad/Cam Machining Center 2", targetRoom: "Cad/Cam Machining Center 2" },
+                { pitch: 5, yaw: 60, text: "Ke Ruang Pejabat JKM (Aras Atas)", targetRoom: "Pejabat Koridor" }
+            ],
+            rooms: {
+                "Cad/Cam Machining Center 1": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Pusat Pemesinan CAD/CAM Machining Center 1 bagi kerja amali mesin CNC dan pembuatan komputer.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Utama", targetRoom: "MAIN_VIEW" }]
+                },
+                "Cad/Cam Machining Center 2": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Pusat Pemesinan CAD/CAM Machining Center 2.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Utama", targetRoom: "MAIN_VIEW" }]
+                },
+                "Student Discussion Area": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Kawasan Terbuka perbincangan tugasan untuk para pelajar JKM.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor Utama", targetRoom: "MAIN_VIEW" }]
+                },
+                // Ruang Pejabat
+                "Pejabat Koridor": {
+                    img: "image/placeholder_360.jpg",
+                    desc: "Laluan ke bilik pensyarah dan pentadbiran JKM Blok U13.",
+                    hotspots: [
+                        { pitch: 0, yaw: -45, text: "Masuk ke Pejabat JKM 2 / Bilik Pensyarah 1", targetRoom: "Pejabat JKM 2" },
+                        { pitch: 0, yaw: 45, text: "Masuk ke Pejabat JKM 3", targetRoom: "Pejabat JKM 3" },
+                        { pitch: -10, yaw: 180, text: "Kembali ke Koridor Utama Bawah", targetRoom: "MAIN_VIEW" }
+                    ]
+                },
+                "Pejabat JKM 2": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Ruang Pejabat Kakitangan JKM 2 bersambung bersama Bilik Pensyarah 1.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor", targetRoom: "Pejabat Koridor" }]
+                },
+                "Pejabat JKM 3": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Ruang Pejabat Kakitangan Pentadbiran JKM 3.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Koridor", targetRoom: "Pejabat Koridor" }]
+                },
+                "Bilik AHU2": { 
+                    img: "image/placeholder_360.jpg", 
+                    desc: "Bilik kawalan utiliti pengudaraan AHU2.",
+                    hotspots: [{ pitch: 0, yaw: 180, text: "Keluar", targetRoom: "Pejabat Koridor" }]
+                }
+            }
+        },
+        "Blok ME": {
+    image: "https://pannellum.org/images/alma.jpg",
+    desc: "Blok Jabatan Kejuruteraan Mekanikal menempatkan makmal, bilik kuliah, bilik seminar, bilik mesyuarat, pejabat pentadbiran, serta kemudahan tandas staf dan pelajar.",
+    mapLink: "https://maps.app.goo.gl/rAqNbVJfQskmyubh6",
+    hotspots: [
+        { pitch: -5, yaw: 10, text: "Ke ME001", targetRoom: "ME001" },
+        { pitch: -5, yaw: -30, text: "Ke ME003", targetRoom: "ME003" },
+        { pitch: -5, yaw: 45, text: "Ke ME004", targetRoom: "ME004" },
+        { pitch: 0, yaw: -70, text: "Ke MK2", targetRoom: "MK2" },
+        { pitch: -8, yaw: 90, text: "Ke MK3", targetRoom: "MK3" },
+        { pitch: -10, yaw: -110, text: "Ke Bilik Barangan", targetRoom: "BILIK BARANGAN" },
+        { pitch: -12, yaw: 140, text: "Ke Tandas Lelaki", targetRoom: "TANDAS LELAKI" },
+        { pitch: -10, yaw: 160, text: "Ke Tandas Perempuan", targetRoom: "TANDAS PEREMPUAN" },
+        { pitch: -15, yaw: -5, text: "Ke Tandas", targetRoom: "TANDAS" },
+        { pitch: 10, yaw: 120, text: "Naik ke Tingkat 1 (Siri ME100)", targetRoom: "Tingkat 1 Koridor" },
+        { pitch: 12, yaw: 125, text: "Naik ke Tingkat 3 (Siri ME300)", targetRoom: "Tingkat 3 Koridor" }
+    ],
+    rooms: {
+        /* ================= ARAS BAWAH (GROUND FLOOR) ================= */
+        "ME001": { 
+            img: "image/ME/me001.jpg", 
+            desc: "Berada di tingkat bawah.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Laluan Utama ME", targetRoom: "MAIN_VIEW" }]
+        },
+        "ME003": { 
+            img: "image/ME/me004.jpg", 
+            desc: "Berada di tingkat bawah.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Laluan Utama ME", targetRoom: "MAIN_VIEW" }]
+        },
+        "ME004": { 
+            img: "image/ME/me004.jpg", 
+            desc: "Berada di tingkat bawah.",
+            hotspots: [{ pitch: 0, yaw: 180, text: "Keluar ke Laluan Utama ME", targetRoom: "MAIN_VIEW" }]
+        },
+        "Makmal komputer 2": { 
+            img: "image/ME/makmal_komp2.jpg", 
+            desc: "Berada di tingkat 2.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Laluan Utama ME", targetRoom: "MAIN_VIEW" }]
+        },
+        "Makmal komputer 3": { 
+            img: "image/ME/makmal_kom_tandas_lelaki.jpg", 
+            desc: "Berada di tingkat 2.",
+            hotspots: [{ pitch: 0, yaw: 90, text: "Keluar ke Laluan Utama ME", targetRoom: "MAIN_VIEW" }]
+        },
+        "BILIK BARANGAN": { 
+            img: "image/ME/me101_me102_bilik_barang.jpg", 
+            desc: "Ruang penyimpanan Bilik Barangan Berada di tingkat 1.",
+            hotspots: [{ pitch: 0, yaw: -90, text: "Keluar ke Laluan Utama ME", targetRoom: "MAIN_VIEW" }]
+        },
+        "TANDAS LELAKI": { 
+            img: "image/ME/makmal_kom_tandas_lelaki.jpg", 
+            desc: "Kemudahan Tandas Lelaki Berada di tingkat 2.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Laluan Utama ME", targetRoom: "MAIN_VIEW" }]
+        },
+        "TANDAS PEREMPUAN": { 
+            img: "image/ME/me103_tandas_perempuan.jpg", 
+            desc: "Kemudahan Tandas Perempuan Berada di tingkat 1.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Laluan Utama ME", targetRoom: "MAIN_VIEW" }]
+        },
+        "TANDAS": { 
+            img: "image/ME/me303_tandas.jpg", 
+            desc: "Kemudahan Tandas berada di tingkat atas sekali.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Kembali ke Laluan Utama ME", targetRoom: "MAIN_VIEW" }]
+        },
+
+        /* ================= TINGKAT 1 ================= */
+        "ME101": { 
+            img: "image/ME/me101_me102_bilik_barang.jpg", 
+            desc: "Bilik kuliah / ruang akademik ME101 di Tingkat 1.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T1", targetRoom: "Tingkat 1 Koridor" }]
+        },
+        "ME102": { 
+            img: "image/ME/me101_me102_bilik_barang.jpg", 
+            desc: "Bilik kuliah / ruang akademik ME102 di Tingkat 1.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T1", targetRoom: "Tingkat 1 Koridor" }]
+        },
+        "ME103": { 
+            img: "image/ME/me103_tandas_perempuan.jpg", 
+            desc: "Bilik kuliah / ruang akademik ME103 di Tingkat 1.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T1", targetRoom: "Tingkat 1 Koridor" }]
+        },
+
+        /* ================= TINGKAT 3 ================= */
+        "ME301": { 
+            img: "image/ME/me302_me301.jpg", 
+            desc: "Bilik kuliah ME301 di Tingkat 3.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T3", targetRoom: "Tingkat 3 Koridor" }]
+        },
+        "ME302": { 
+            img: "image/ME/me302_me301.jpg", 
+            desc: "Bilik kuliah ME302 di Tingkat 3.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T3", targetRoom: "Tingkat 3 Koridor" }]
+        },
+        "ME303": { 
+            img: "image/ME/me303.jpg", 
+            desc: "Bilik kuliah ME303 di Tingkat 3.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Koridor T3", targetRoom: "Tingkat 3 Koridor" }]
+        }
+    }
+},
+        "Blok Jabatan Kejuruteraan Mekanikal (PH)": {
+    image: "image/PH/BLOK_PH_MAIN.jpg",
+    desc: "Blok Jabatan Kejuruteraan Mekanikal (Blok PH) menempatkan bilik kuliah (Siri PH100 - PH400), bilik mesyuarat, bilik seminar, dan bilik khas.",
+    mapLink: "https://maps.app.goo.gl/4mhpiNcRGd7XrMTz9?g_st=ac",
+    hotspots: [
+        { pitch: 0, yaw: -100, text: "Ke PH101", targetRoom: "PH101" },
+        { pitch: 0, yaw: -90, text: "Ke PH102", targetRoom: "PH102" },
+        { pitch: 0, yaw: -80, text: "Ke PH103", targetRoom: "PH103" },
+        { pitch: 0, yaw: -70, text: "Ke PH104", targetRoom: "PH104" },
+        { pitch: 0, yaw: -60, text: "Ke PH105", targetRoom: "PH105" },
+        { pitch: 0, yaw: -50, text: "Ke PH201", targetRoom: "PH201" },
+        { pitch: 0, yaw: -40, text: "Ke PH202 (Meeting Room)", targetRoom: "PH202(MEETING ROOM)" },
+        { pitch: 0, yaw: -30, text: "Ke PH203 (Bilik Seroja)", targetRoom: "PH203(BILIK SEROJA)" },
+        { pitch: 0, yaw: -20, text: "Ke PH204 (Bilik Seminar)", targetRoom: "PH204(BILIK SEMINAR)" },
+        { pitch: 0, yaw: -10, text: "Ke PH205", targetRoom: "PH205" },
+        { pitch: 0, yaw: 0, text: "Ke PH301", targetRoom: "PH301" },
+        { pitch: 0, yaw: 10, text: "Ke PH302", targetRoom: "PH302" },
+        { pitch: 0, yaw: 20, text: "Ke PH303", targetRoom: "PH303" },
+        { pitch: 0, yaw: 30, text: "Ke PH304", targetRoom: "PH304" },
+        { pitch: 0, yaw: 40, text: "Ke PH305", targetRoom: "PH305" },
+        { pitch: 0, yaw: 50, text: "Ke PH401", targetRoom: "PH401" },
+        { pitch: 0, yaw: 60, text: "Ke PH402", targetRoom: "PH402" },
+        { pitch: 0, yaw: 70, text: "Ke PH403", targetRoom: "PH403" },
+        { pitch: 0, yaw: 80, text: "Ke PH404", targetRoom: "PH404" },
+        { pitch: 0, yaw: 90, text: "Ke PH405", targetRoom: "PH405" }
+    ],
+    rooms: {
+        "PH101": { 
+            img: "image/PH/PH101.jpg", 
+            desc: "Bilik Kuliah PH101 berada di hujung belah kanan bangunan tingkat bawah.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH102": { 
+            img: "image/PH/PH102.jpg", 
+            desc: "Bilik Kuliah PH102 berada di belah kanan, sebelah kiri dari bilik PH101, tingkat bawah.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH103": { 
+            img: "image/PH/PH103.jpg", 
+            desc: "Bilik Kuliah PH103 berada di tengah bangunan tingkat bawah.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH104": { 
+            img: "image/PH/PH104.jpg", 
+            desc: "Bilik Kuliah PH104 berada di belah kiri bangunan, tingkat bawah.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH105": { 
+            img: "image/PH/PH105.jpg", 
+            desc: "Bilik Kuliah PH105 berada di hujung belah kiri bangunan di tingkat bawah.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH201": { 
+            img: "image/PH/PH201.jpg", 
+            desc: "Bilik Kuliah PH201 berada di hujung belah kanan bangunan di tingkat satu.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH202(MEETING ROOM)": { 
+            img: "image/PH/PH202.jpg", 
+            desc: "PH202 - Bilik Mesyuarat berdekatan dengan tangga belah kanan, sebelah kiri tangga, di tingkat 1.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH203(BILIK SEROJA)": { 
+            img: "image/PH/PH203_204.jpg", 
+            desc: "PH203 - Bilik Seroja bersebelahan dengan bilik mesyuarat di tingkat satu.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH204(BILIK SEMINAR)": { 
+            img: "image/PH/PH203_204.jpg", 
+            desc: "PH204 - Bilik Seminar berada di belah kiri bangunan, berdekatan dengan tangganbelah kiri, berada di tingkat satu.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH205": { 
+            img: "image/PH/PH205.jpg", 
+            desc: "Bilik Kuliah PH205 berada di hujung belah kiri bangunan di tingkat 1.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH301": { 
+            img: "image/PH/PH301_302.jpg", 
+            desc: "Bilik Kuliah PH301.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH302": { 
+            img: "image/PH/PH302_303.jpg", 
+            desc: "Bilik Kuliah PH302.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH303": { 
+            img: "image/PH/PH302_303.jpg", 
+            desc: "Bilik Kuliah PH303.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH304": { 
+            img: "image/PH/PH304_305.jpg", 
+            desc: "Bilik Kuliah PH304.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH305": { 
+            img: "image/PH/PH304_305.jpg", 
+            desc: "Bilik Kuliah PH305.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH401": { 
+            img: "image/PH/PH401.jpg", 
+            desc: "Bilik Kuliah PH401.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH402": { 
+            img: "image/PH/PH402.jpg", 
+            desc: "Bilik Kuliah PH402.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH403": { 
+            img: "image/PH/PH403.jpg", 
+            desc: "Bilik Kuliah PH403.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH404": { 
+            img: "image/PH/PH404.jpg", 
+            desc: "Bilik Kuliah PH404.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "PH405": { 
+            img: "image/PH/PH405.jpg", 
+            desc: "Bilik Kuliah PH405.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        }
+    }
+},
+"Blok Jabatan Kejuruteraan Elektrik (Block A)": {
+    image: "image/BLOK_A/BLOK_A_MAIN.jpg",
+    desc: "Blok A (JKE) menempatkan makmal, bilik kuliah (Siri A100 - A400), bilik surau, dan tandas mengikut aras.",
+    mapLink: "https://maps.app.goo.gl/4mhpiNcRGd7XrMTz9?g_st=ac",
+    hotspots: [
+        // Aras 1
+        { pitch: 0, yaw: -100, text: "Ke Makmal Pembaikan Elektronik (A101)", targetRoom: "A101" },
+        { pitch: 0, yaw: -90, text: "Ke A102", targetRoom: "A102" },
+        { pitch: 0, yaw: -80, text: "Ke A103", targetRoom: "A103" },
+        { pitch: 0, yaw: -70, text: "Ke A104", targetRoom: "A104" },
+        { pitch: 0, yaw: -60, text: "Ke Tandas Staff Lelaki (Aras 1)", targetRoom: "TANDAS_STAFF_LELAKI_A1" },
+        { pitch: 0, yaw: -50, text: "Ke Tandas Staff Perempuan (Aras 1)", targetRoom: "TANDAS_STAFF_PEREMPUAN_A1" },
+
+        // Aras 2
+        { pitch: 0, yaw: -40, text: "Ke Surau Perempuan (Aras 2)", targetRoom: "SURAU_PEREMPUAN_A2" },
+        { pitch: 0, yaw: -30, text: "Ke Tandas Perempuan (Aras 2)", targetRoom: "TANDAS_PEREMPUAN_A2" },
+        { pitch: 0, yaw: -20, text: "Ke A201", targetRoom: "A201" },
+        { pitch: 0, yaw: -10, text: "Ke A202", targetRoom: "A202" },
+        { pitch: 0, yaw: 0, text: "Ke A203", targetRoom: "A203" },
+        { pitch: 0, yaw: 10, text: "Ke A204", targetRoom: "A204" },
+
+        // Aras 3
+        { pitch: 0, yaw: 20, text: "Ke A301", targetRoom: "A301" },
+        { pitch: 0, yaw: 30, text: "Ke A302", targetRoom: "A302" },
+        { pitch: 0, yaw: 40, text: "Ke A303", targetRoom: "A303" },
+        { pitch: 0, yaw: 50, text: "Ke A304", targetRoom: "A304" },
+        { pitch: 0, yaw: 60, text: "Ke Tandas Pelajar Perempuan (Aras 3)", targetRoom: "TANDAS_PELAJAR_PEREMPUAN_A3" },
+        { pitch: 0, yaw: 70, text: "Ke Tandas Pelajar Lelaki (Aras 3)", targetRoom: "TANDAS_PELAJAR_LELAKI_A3" },
+
+        // Aras 4
+        { pitch: 0, yaw: 80, text: "Ke A401", targetRoom: "A401" },
+        { pitch: 0, yaw: 90, text: "Ke A402", targetRoom: "A402" },
+        { pitch: 0, yaw: 100, text: "Ke A403", targetRoom: "A403" },
+        { pitch: 0, yaw: 110, text: "Ke A404", targetRoom: "A404" },
+        { pitch: 0, yaw: 120, text: "Ke Tandas Lelaki (Aras 4)", targetRoom: "TANDAS_LELAKI_A4" },
+        { pitch: 0, yaw: 130, text: "Ke Surau Lelaki (Aras 4)", targetRoom: "SURAU_LELAKI_A4" }
+    ],
+    rooms: {
+        // --- ARAS 1 ---
+        "A101": { 
+            img: "image/BLOK_A/A101.jpg", 
+            desc: "Makmal Pembaikan Elektronik (A101) berada di Aras 1.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "A102": { 
+            img: "image/BLOK_A/A102.jpg", 
+            desc: "Bilik Kuliah/Makmal A102 berada di Aras 1.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "A103": { 
+            img: "image/BLOK_A/A103.jpg", 
+            desc: "Bilik Kuliah/Makmal A103 berada di Aras 1.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "A104": { 
+            img: "image/BLOK_A/A104.jpg", 
+            desc: "Bilik Kuliah/Makmal A104 berada di Aras 1.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "TANDAS STAFF LELAKI_A1": { 
+            img: "image/BLOK_A/TANDAS_STAFF_LELAKI_A1.jpg", 
+            desc: "Tandas Staff Lelaki di Aras 1.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "TANDAS STAFF PEREMPUAN_A1": { 
+            img: "image/BLOK_A/TANDAS_STAFF_PEREMPUAN_A1.jpg", 
+            desc: "Tandas Staff Perempuan di Aras 1.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+
+        // --- ARAS 2 ---
+        "SURAU PEREMPUAN A2": { 
+            img: "image/BLOK_A/SURAU_PEREMPUAN_A2.jpg", 
+            desc: "Surau Perempuan di Aras 2.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "TANDAS PEREMPUAN A2": { 
+            img: "image/BLOK_A/TANDAS_PEREMPUAN_A2.jpg", 
+            desc: "Tandas Perempuan di Aras 2.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "A201": { 
+            img: "image/BLOK_A/A201.jpg", 
+            desc: "Bilik Kuliah A201 berada di Aras 2.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "A202": { 
+            img: "image/BLOK_A/A202.jpg", 
+            desc: "Bilik Kuliah A202 berada di Aras 2.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "A203": { 
+            img: "image/BLOK_A/A203.jpg", 
+            desc: "Bilik Kuliah A203 berada di Aras 2.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "A204": { 
+            img: "image/BLOK_A/A204.jpg", 
+            desc: "Bilik Kuliah A204 berada di Aras 2.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+
+        // --- ARAS 3 ---
+        "A301": { 
+            img: "image/BLOK_A/A301.jpg", 
+            desc: "Bilik Kuliah A301 berada di Aras 3.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "A302": { 
+            img: "image/BLOK_A/A302.jpg", 
+            desc: "Bilik Kuliah A302 berada di Aras 3.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "A303": { 
+            img: "image/BLOK_A/A303.jpg", 
+            desc: "Bilik Kuliah A303 berada di Aras 3.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "A304": { 
+            img: "image/BLOK_A/A304.jpg", 
+            desc: "Bilik Kuliah A304 berada di Aras 3.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "TANDAS PELAJAR PEREMPUAN_A3": { 
+            img: "image/BLOK_A/TANDAS_PELAJAR_PEREMPUAN_A3.jpg", 
+            desc: "Tandas Pelajar Perempuan di Aras 3.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "TANDAS PELAJAR LELAKI_A3": { 
+            img: "image/BLOK_A/TANDAS_PELAJAR_LELAKI_A3.jpg", 
+            desc: "Tandas Pelajar Lelaki di Aras 3.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+
+        // --- ARAS 4 ---
+        "A401": { 
+            img: "image/BLOK_A/A401.jpg", 
+            desc: "Bilik Kuliah A401 berada di Aras 4.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "A402": { 
+            img: "image/BLOK_A/A402.jpg", 
+            desc: "Bilik Kuliah A402 berada di Aras 4.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "A403": { 
+            img: "image/BLOK_A/A403.jpg", 
+            desc: "Bilik Kuliah A403 berada di Aras 4.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "A404": { 
+            img: "image/BLOK_A/A404.jpg", 
+            desc: "Bilik Kuliah A404 berada di Aras 4.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "TANDAS LELAKI A4": { 
+            img: "image/BLOK_A/TANDAS_LELAKI_A4.jpg", 
+            desc: "Tandas Lelaki di Aras 4.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        },
+        "SURAU LELAKI A4": { 
+            img: "image/BLOK_A/SURAU_LELAKI_A4.jpg", 
+            desc: "Surau Lelaki di Aras 4.",
+            hotspots: [{ pitch: 0, yaw: 0, text: "Keluar ke Utama", targetRoom: "MAIN_VIEW" }]
+        }
+    }
+}
+        }; // Tanda penutup } di baris ini yang sebelumnya hilang telah diperbaiki
+
+    // Fungsi selamat untuk kemas kini paparan 360 darjah
+    function update360View(title, imgUrl, desc, currentHotspots, roomKeyName) {
+        document.getElementById("viewTitle").innerText = title;
+        document.getElementById("viewDesc").innerText = desc;
+
+        // Padam viewer lama secara selamat sekiranya wujud
+        if (myViewer) {
+            try {
+                myViewer.destroy();
+            } catch(e) {
+                console.log("Viewer reset notice:", e);
+            }
+            myViewer = null;
+        }
+
+        // Susun semula senarai titik hotspot
+        const formattedHotspots = [];
+        if (currentHotspots && Array.isArray(currentHotspots)) {
+            currentHotspots.forEach(hp => {
+                formattedHotspots.push({
+                    "pitch": hp.pitch,
+                    "yaw": hp.yaw,
+                    "type": "info",
+                    "text": hp.text,
+                    "clickHandlerFunc": function() {
+                        if (hp.targetRoom === "MAIN_VIEW") {
+                            const mainBtn = document.getElementById("mainViewBtn");
+                            if (mainBtn) mainBtn.click();
+                        } else {
+                            const allBtns = document.querySelectorAll('.room-btn');
+                            allBtns.forEach(btn => {
+                                if (btn.innerText.trim() === hp.targetRoom) {
+                                    btn.click();
+                                }
+                            });
+                        }
+                    }
+                });
+            });
+        }
+        
+
+        // Mulakan semula Pannellum dengan parameter yang betul
+        myViewer = pannellum.viewer('panorama-viewer', {
+            "type": "equirectangular",
+            "panorama": imgUrl,
+            "autoLoad": true,
+            "hfov": 100,
+            "hotspots": formattedHotspots
+        });
+
+        // Kemas kini gaya butang aktif
+        document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('active'));
+        const activeBtn = Array.from(document.querySelectorAll('.room-btn')).find(b => b.innerText.trim() === roomKeyName);
+        if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    // Memulakan pembinaan antara muka (Interface Setup)
+    if (selectedBuilding && buildingData[selectedBuilding]) {
+        const building = buildingData[selectedBuilding];
+        document.getElementById("displayTitle").innerText = selectedBuilding;
+        document.getElementById("googleMapsLink").href = building.mapLink;
+
+        const roomGrid = document.getElementById("roomGrid");
+        roomGrid.innerHTML = ""; // Bersihkan Grid
+
+        // 1. Bina Butang Utama (Main View)
+        const mainBtn = document.createElement("button");
+        mainBtn.className = "room-btn active";
+        mainBtn.id = "mainViewBtn";
+        mainBtn.innerText = "Pandangan Utama";
+        mainBtn.onclick = function() {
+            update360View(selectedBuilding, building.image, building.desc, building.hotspots, "Pandangan Utama");
+        };
+        roomGrid.appendChild(mainBtn);
+
+        // 2. Bina Butang Pilihan Bilik secara dinamik
+        if (building.rooms) {
+            for (const roomName in building.rooms) {
+                if (building.rooms.hasOwnProperty(roomName)) {
+                    const btn = document.createElement("button");
+                    btn.className = "room-btn";
+                    btn.innerText = roomName;
+                    btn.onclick = function() {
+                        const room = building.rooms[roomName];
+                        update360View(roomName, room.img, room.desc, room.hotspots, roomName);
+                    };
+                    roomGrid.appendChild(btn);
+                }
+            }
+        }
+
+        // Cetus paparan pertama
+        mainBtn.click();
+
+    } else {
+        document.getElementById("mainContent").innerHTML = `
+            <h2>Data Tidak Ditemui</h2>
+            <p>Sila pilih lokasi dari menu sub-kategori.</p>
+            <a href="explore.html" class="map-btn">Kembali Ke Explore</a>
+        `;
+    }
+</script>
+</body>
+</html>
