@@ -27,7 +27,7 @@ header {
     position: relative;
 }
 
-/* Container to group the hamburger menu and logo on the left */
+/* Container to group hamburger menu and logo on the left */
 .header-left {
     position: absolute;
     left: 20px;
@@ -49,7 +49,7 @@ header {
 
 /* POLISAS Logo Styling */
 .header-logo {
-    height: 40px; /* Adjust height to fit nicely inside header */
+    height: 40px;
     width: auto;
     object-fit: contain;
 }
@@ -63,14 +63,14 @@ header h2 {
 .sidebar {
     position: fixed;
     top: 0;
-    left: -280px; /* Hidden off-screen by default */
+    left: -280px;
     width: 250px;
     height: 100%;
     
     /* Glassmorphism Styling */
-    background: rgba(0, 51, 102, 0.65); /* Semi-transparent dark blue tone */
-    backdrop-filter: blur(12px); /* Frosted blur effect */
-    -webkit-backdrop-filter: blur(12px); /* Safari support */
+    background: rgba(0, 51, 102, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-right: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
     
@@ -80,7 +80,7 @@ header h2 {
 }
 
 .sidebar.active {
-    left: 0; /* Slides into view from left */
+    left: 0;
 }
 
 /* Sidebar Navigation Items */
@@ -212,7 +212,7 @@ header h2 {
     text-transform: uppercase;
 }
 
-/* Card Grid Layout */
+/* Card Grid Layout - Default for Desktop */
 .card-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -239,6 +239,42 @@ header h2 {
     margin-bottom: 15px;
     color: #003366;
 }
+
+.card h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+/* Mobile Responsive Styling (2-by-2 Grid) */
+@media (max-width: 600px) {
+    header h2 {
+        font-size: 16px;
+        margin-left: 65px; /* Keeps text centered relative to left elements */
+    }
+
+    .container {
+        padding: 20px 15px;
+    }
+
+    .card-container {
+        grid-template-columns: repeat(2, 1fr); /* 2 columns on phone screen */
+        gap: 12px;
+    }
+
+    .card {
+        padding: 18px 10px; /* Reduced card padding */
+        border-radius: 12px;
+    }
+
+    .card i {
+        font-size: 28px; /* Compact icon */
+        margin-bottom: 8px;
+    }
+
+    .card h3 {
+        font-size: 14px; /* Compact title */
+    }
+}
 </style>
 </head>
 
@@ -247,7 +283,7 @@ header h2 {
 <header>
     <div class="header-left">
         <button class="menu-btn" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
-        <!-- POLISAS Logo image inserted right next to the menu icon -->
+        <!-- POLISAS Logo -->
         <img src="image/Logo_polisas.png" alt="POLISAS Logo" class="header-logo">
     </div>
 </header>
