@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pertolongan & Maklum Balas - Polisas Map</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f4f6f9;
+}
+
+/* Header with Flexbox */
+header {
+    background: #ff0000;
+    color: white;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.header-left {
+    position: absolute;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.menu-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1002;
+    padding: 0;
+}
+
+.header-logo {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+}
+
+header h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+/* Glass Transparent Sliding Sidebar Styling */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 250px;
+    height: 100%;
+    background: rgba(0, 51, 102, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+    transition: left 0.3s ease-in-out;
+    z-index: 2000;
+    padding-top: 60px;
+}
+
+.sidebar.active {
+    left: 0;
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar ul li {
+    padding: 15px 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.sidebar ul li a {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: 0.2s;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar ul li a:hover {
+    color: #ff4d4d;
+}
+
+/* Overlay Backdrop */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    display: none;
+    z-index: 1999;
+}
+
+.overlay.active {
+    display: block;
+}
+
+/* Main Container Layout */
+.container {
+    padding: 30px 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.page-title {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.page-title h3 {
+    color: #003366;
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.page-title p {
+    color: #666;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* FAQ Accordion Styling */
+.faq-section {
+    margin-bottom: 35px;
+}
+
+.faq-item {
+    background: #ffffff;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+
+.faq-question {
+    width: 100%;
+    padding: 16px 20px;
+    background: none;
+    border: none;
+    outline: none;
+    text-align: left;
+    font-size: 15px;
+    font-weight: 600;
+    color: #222;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.faq-question:hover {
+    background: #f0f4f8;
+}
+
+.faq-question i {
+    color: #003366;
+    transition: transform 0.3s ease;
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background: #fafbfc;
+}
+
+.faq-answer-content {
+    padding: 15px 20px;
+    font-size: 14px;
+    color: #444;
+    line-height: 1.6;
+    border-top: 1px solid #eee;
+}
+
+/* Active State for Accordion */
+.faq-item.active .faq-answer {
+    max-height: 200px; /* Expands smoothly */
+}
+
+.faq-item.active .faq-question i {
+    transform: rotate(180deg);
+}
+
+/* Google Form Feedback Card */
+.feedback-card {
+    background: #ffffff;
+    border-radius: 15px;
+    padding: 30px 20px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    border-top: 5px solid #ff0000;
+}
+
+.feedback-card i {
+    font-size: 42px;
+    color: #ff0000;
+    margin-bottom: 15px;
+}
+
+.feedback-card h3 {
+    margin: 0 0 10px 0;
+    color: #003366;
+}
+
+.feedback-card p {
+    color: #555;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.feedback-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #003366;
+    color: #ffffff;
+    padding: 12px 25px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    transition: 0.3s;
+}
+
+.feedback-btn:hover {
+    background: #ff0000;
+    box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+}
+
+/* Mobile Responsive Tweaks */
+@media (max-width: 600px) {
+    header h2 {
+        font-size: 16px;
+        margin-left: 65px;
+    }
+    
+    .faq-question {
+        font-size: 14px;
+        padding: 14px 16px;
+    }
+    
+    .faq-answer-content {
+        font-size: 13px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="header-left">
+        <button class="menu-btn" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+        <img src="image/Logo_polisas.png" alt="POLISAS Logo" class="header-logo">
+    </div>
+    <h2>Pertolongan & Maklum Balas</h2>
+</header>
+
+<!-- Sidebar Navigation -->
+<div id="sidebar" class="sidebar">
+    <ul>
+        <li><a href="explore.html"><i class="fa fa-map-marker-alt"></i> Utama / Explore</a></li>
+        <li><a href="group.html"><i class="fa fa-users"></i> Kumpulan Kami</a></li>
+        <li><a href="about.html"><i class="fa fa-info-circle"></i> About My Polisas Map</a></li>
+        <li><a href="feedback.html"><i class="fa fa-phone"></i> Pertolongan dan Maklum Balas</a></li>
+    </ul>
+</div>
+
+<!-- Dark Backdrop Overlay -->
+<div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+
+<div class="container">
+
+    <div class="page-title">
+        <h3>Soalan Lazim (FAQ)</h3>
+        <p>Jawapan pantas untuk masalah biasa semasa menggunakan Polisas Map.</p>
+    </div>
+
+    <!-- FAQ Accordion List -->
+    <div class="faq-section">
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                <span>1. Bagaimanakah cara untuk saya mencari lokasi bilik kuliah atau makmal?</span>
+                <i class="fa fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    Gunakan ruangan carian (Search Bar) di halaman utama "Explore". Taip kod bilik (contoh: PJ 108, U9-08) atau nama bilik, dan tekan pada keputusan yang tertera.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                <span>2. Mengapa sesetengah bilik tidak dijumpai dalam carian?</span>
+                <i class="fa fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    Sistem kami masih dalam proses kemas kini. Jika bilik khusus tidak dijumpai, cuba cari nama Blok Bangunan utama (seperti Blok PJ atau U8) untuk panduan ke lokasi berkenaan.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                <span>3. Adakah laman web ini memerlukan akses Internet?</span>
+                <i class="fa fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    Ya, sambungan Internet diperlukan untuk memuatkan peta interaktif, icon visual, dan maklumat maklum balas.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                <span>4. Bolehkah saya menggunakannya di telefon bimbit?</span>
+                <i class="fa fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    Boleh. Laman web Polisas Map direka khas supaya responsif dan mudah digunakan pada skrin telefon bimbit mahupun komputer.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                <span>5. Bagaimanakah cara mengetahui kemudahan yang ada di Kamsis?</span>
+                <i class="fa fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    Pilih kategori "Hostel" di halaman Explore, kemudian pilih Kamsis pilihan anda (Al-Biruni, Al-Ghazali, atau Ibnu Sina) untuk melihat senarai fasiliti dan bilik.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                <span>6. Di manakah lokasi parkir khas untuk pelajar/pelawat?</span>
+                <i class="fa fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    Anda boleh memilih menu "Parking" pada halaman utama untuk melihat lokasi susun atur tempat letak kereta dan motosikal di sekitar POLISAS.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                <span>7. Bagaimanakah jika lokasi pada peta didapati tidak tepat?</span>
+                <i class="fa fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    Sila gunakan borang maklum balas di bahagian bawah halaman ini untuk melaporkan sebarang kesilapan lokasi agar team kami dapat membetulkannya.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                <span>8. Adakah perkhidmatan panduan langkah demi langkah (Tour Guide) disediakan?</span>
+                <i class="fa fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    Ya, sistem kami dilengkapi panduan berasaskan Driver.js untuk membantu pengguna baharu memahami navigasi laman web ini secara automatik.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                <span>9. Adakah aplikasi ini adalah aplikasi rasmi POLISAS?</span>
+                <i class="fa fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    Laman web ini dibangunkan sebagai projek khas bagi memudahcara navigasi kampus untuk pelajar, staf, dan pelawat POLISAS.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                <span>10. Bagaimanakah cara menghubungi pasukan pembangun jika ada cadangan?</span>
+                <i class="fa fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    Anda boleh terus mengisi Borang Maklum Balas di bawah atau menyemak butiran maklumat pasukan kami di halaman "Kumpulan Kami".
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Google Form Feedback Call-to-Action Card -->
+    <div class="feedback-card">
+        <i class="fa fa-paper-plane"></i>
+        <h3>Hantar Maklum Balas Anda</h3>
+        <p>Bantu kami menambah baik Polisas Map. Klik butang di bawah untuk mengisi borang pandangan atau aduan isu.</p>
+        
+        <!-- REPLACE THE 'href' LINK BELOW WITH YOUR ACTUAL GOOGLE FORM URL -->
+        <a href="https://forms.google.com" target="_blank" class="feedback-btn">
+            <span>Buka Borang Maklum Balas</span>
+            <i class="fa fa-external-link-alt"></i>
+        </a>
+    </div>
+
+</div>
+
+<script>
+// Sidebar Toggle Function
+function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("active");
+    document.getElementById("overlay").classList.toggle("active");
+}
+
+// Accordion Toggle Function
+function toggleFaq(element) {
+    const parent = element.parentElement;
+    
+    // Close other items if one is opened
+    document.querySelectorAll('.faq-item').forEach(item => {
+        if (item !== parent) {
+            item.classList.remove('active');
+        }
+    });
+
+    // Toggle current selected item
+    parent.classList.toggle('active');
+}
+</script>
+
+</body>
+</html>
