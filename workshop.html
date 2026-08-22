@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polisas Workshop Details (360° View)</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Pannellum 360 Viewer CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+
+    <!-- Driver.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+        }
+
+        header {
+            background: #ff0000;
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .container {
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        #panorama-viewer {
+            width: 100%;
+            height: 480px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            background: #000;
+        }
+
+        .map-btn {
+            display: inline-block;
+            background: #4285F4; 
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 20px 0;
+            transition: 0.3s;
+        }
+
+        .map-btn:hover {
+            background: #357ae8;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2 id="displayTitle">Makmal / Bengkel Details</h2>
+</header>
+
+<div class="container" id="mainContent">
+    <div id="panorama-viewer"></div>
+    
+    <h2 id="viewTitle" style="color: #333;"></h2>
+    <p id="viewDesc" style="font-size: 1rem; line-height: 1.6; color: #555;"></p>
+
+    <a id="googleMapsLink" href="#" target="_blank" class="map-btn">
+        <i class="fa fa-map-marker-alt"></i> Buka Google Maps
+    </a>
+
+    <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
+    <a href="category.html?main=workshop" class="back-link"><i class="fa fa-arrow-left"></i> Kembali ke Sub-Kategori</a>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedWorkshop = urlParams.get("name") || "High Tech Lab";
+
+    // Data makmal/bengkel dengan laluan imej 360 dan penerangan
+    const workshopData = {
+        "High Tech Lab": {
+            image: "image/Workshop/High Tech Lab.png",
+            desc: "Makmal teknologi tinggi yang dilengkapi dengan peralatan moden untuk pembelajaran dan ujian lanjutan.",
+            mapLink: "https://maps.google.com"
+        },
+        "Makmal Ukur": {
+            image: "image/Workshop/Makmal Hidro.png",
+            desc: "Makmal khas bagi penyimpanan dan persediaan instrumen geomatik dan ukur tanah.",
+            mapLink: "https://maps.google.com"
+        },
+        "Makmal Hidraulik": {
+            image: "image/Workshop/Makmal Hidro.png",
+            desc: "Makmal amali cecair dan aliran air bagi ujian kejuruteraan hidraulik dan mekanik bendalir.",
+            mapLink: "https://maps.google.com"
+        },
+        "Makmal Kayu": {
+            image: "image/Workshop/Bengkel Kayu.png",
+            desc: "Bengkel pertukangan kayu untuk latihan amali kerja-kerja struktur kayu dan binaan.",
+            mapLink: "https://maps.google.com"
+        },
+        "Makmal Highway": {
+            image: "image/Workshop/Makmal Highway.png",
+            desc: "Makmal kejuruteraan jalan raya bagi menjalankan ujian bahan turapan, bitumen, dan asfalt.",
+            mapLink: "https://maps.google.com"
+        },
+        "Makmal Concrete": {
+            image: "image/Workshop/Makmal Highway.png",
+            desc: "Makmal bancuhan dan ujian kekuatan mampatan konkrit serta ujian bahan binaan.",
+            mapLink: "https://maps.google.com"
+        },
+        "Makmal Geotechnic": {
+            image: "image/Workshop/Makmal Geotech.png",
+            desc: "Makmal sains tanah bagi menjalankan ujian analisis saiz zarah, had atterberg, dan kekuatan tanah.",
+            mapLink: "https://maps.google.com"
+        },
+        "Makmal Strucktur": {
+            image: "image/Workshop/Makmal Geotech.jpg",
+            desc: "Makmal analisa beban dan daya kerangka struktur binaan.",
+            mapLink: "https://maps.google.com"
+        },
+        "Makmal Lemak Minyak": {
+            image: "image/Workshop/Bengkel Kayu.png",
+            desc: "Makmal pemprosesan dan analisis sampel lemak serta minyak.",
+            mapLink: "https://maps.google.com"
+        },
+        "Makmal Kawalan Mutu": {
+            image: "image/Workshop/Makmal Highway.png",
+            desc: "Makmal analisis kualiti dan jaminan mutu produk hasil proses industri.",
+            mapLink: "https://maps.google.com"
+        },
+        "Makmal Mikrobiologi": {
+            image: "image/Workshop/Makmal Highway.png",
+            desc: "Makmal khas bagi kajian mikroorganisma, kultur bakteria, dan analisis steril.",
+            mapLink: "https://maps.google.com"
+        },
+        "Makmal Analisis Makanan": {
+            image: "image/Workshop/makmalanalisismakanan.jpg",
+            desc: "Makmal ujian kandungan nutrisi, komposisi, dan tahap keselamatan sampel makanan.",
+            mapLink: "https://maps.google.com"
+        },
+        "Makmak Ternakan & Basah": {
+            image: "image/Workshop/Makmal Geotech.png",
+            desc: "Makmal pemprosesan basah dan amali tindak balas bahan cecair.",
+            mapLink: "https://maps.google.com"
+        }
+    };
+
+    if (workshopData[selectedWorkshop]) {
+        const item = workshopData[selectedWorkshop];
+
+        document.getElementById("displayTitle").innerText = selectedWorkshop;
+        document.getElementById("viewTitle").innerText = selectedWorkshop;
+        document.getElementById("viewDesc").innerText = item.desc;
+        document.getElementById("googleMapsLink").href = item.mapLink;
+
+        pannellum.viewer('panorama-viewer', {
+            "type": "equirectangular",
+            "panorama": item.image,
+            "autoLoad": true,
+            "hfov": 100
+        });
+    } else {
+        document.getElementById("mainContent").innerHTML = `
+            <h2>Data Tidak Ditemui</h2>
+            <p>Sila pilih lokasi dari menu sub-kategori.</p>
+            <a href="category.html?main=workshop" class="map-btn">Kembali Ke Sub-Kategori</a>
+        `;
+    }
+</script>
+
+<!-- Driver.js Library & Custom Guide Script -->
+<script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+<script src="guide.js"></script>
+
+</body>
+</html>
